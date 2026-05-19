@@ -10,7 +10,7 @@ def chamada_llm(message, model_id):
         }
     ]
 
-    url = "http://10.30.4.153:8082/v1/chat/completions"
+    url = "http://10.30.4.153:8081/v1/chat/completions"
 
     headers = {
         "Content-Type": "application/json"
@@ -42,7 +42,10 @@ def teste_llms(prompt:str, list_models:list):
 
 
 if __name__=="__main__":
-    models = ["gemma-4-26B-BF16", "gemma-4-31B-BF16", "Mistral3.2-24B-BF16", "Qwen3.6-27B-BF16", "Qwen3.6-35B-BF16", "gemma-4-26B-Q8", "gemma-4-31B-Q8", "Mistral3.2-24B-Q8", "Qwen3.6-27B-Q8", "Qwen3.6-35B-Q8", "gemma-4-26B-Q6", "gemma-4-31B-Q6", "Mistral3.2-24B-Q6", "Qwen3.6-27B-Q6", "Qwen3.6-35B-Q6"]
+    # models = ["gemma-4-26B-BF16", "gemma-4-31B-BF16", "Mistral3.2-24B-BF16", "Qwen3.6-27B-BF16", "Qwen3.6-35B-BF16", "gemma-4-26B-Q8", "gemma-4-31B-Q8", "Mistral3.2-24B-Q8", "Qwen3.6-27B-Q8", "Qwen3.6-35B-Q8", "gemma-4-26B-Q6", "gemma-4-31B-Q6", "Mistral3.2-24B-Q6", "Qwen3.6-27B-Q6", "Qwen3.6-35B-Q6"]
+
+    models = ["Qwen3.6-35B-Q6"]
+
     # models = ["gpt-oss-20B-Q6"]
     dale = teste_llms("You are a medicinal chemist. Please generate 100 different molecules. Please make sure to adhere to the following output format restrictions: 1. Report only the SMILES of the molecules in your final answer; 2. Report one SMILES per line and nothing else.", models)
 
