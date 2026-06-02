@@ -53,8 +53,8 @@ def teste_llms(prompt:str, list_models:list):
                 with open(nome_completo, "w", encoding="utf-8") as f:
                     escrita = f.write(response)
                 
-                with open('metrics.json', 'w', encoding='utf-8') as f:
-                    json.dump(response.json(), f, indent=4)
+                # with open('metrics.json', 'w', encoding='utf-8') as f:
+                #     json.dump(response.json(), f, indent=4)
                     
             except:
                 pass
