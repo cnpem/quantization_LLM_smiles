@@ -32,6 +32,9 @@ def chamada_llm(message, model_id):
 
     response = requests.post(url=url, headers=headers, json=payload)
 
+    with open('metrics.json', 'w', encoding='utf-8') as f:
+        json.dump(response.json(), f, indent=4)
+
     print("Status: ", response.status_code)
     print("Body: ", response.text)
 
