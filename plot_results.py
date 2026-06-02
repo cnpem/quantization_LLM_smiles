@@ -27,7 +27,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 def plotar_grafico(leva, nome_arquivo):
-    df_grouped = leva.groupby(['modelo', 'quantizacao'])[['total_smiles', 'total_smiles_validos', 'total_smiles_duplicados']].sum().reset_index()
+    df_grouped = leva.groupby(['modelo', 'quantizacao'])[['total_smiles', 'total_smiles_validos', 'total_smiles_duplicados']].mean().reset_index()
 
     modelos = df_grouped['modelo'].unique()
     quantizacoes = df_grouped['quantizacao'].unique()
@@ -104,7 +104,7 @@ def plotar_grafico_por_replica(df):
     df["quantizacao"] = df["modelo_quant_temp"].apply(lambda x: x.rsplit("-", 1)[1])
 
     # Agrupamento
-    groupb = df.groupby(["modelo", "quantizacao", "replica_num"])[["total_smiles", "total_smiles_validos", "total_smiles_duplicados"]].sum().reset_index()
+    groupb = df.groupby(["modelo", "quantizacao", "replica_num"])[["total_smiles", "total_smiles_validos", "total_smiles_duplicados"]].mean().reset_index()
 
     modelo = groupb["modelo"].unique()
     quantizacao = groupb["quantizacao"].unique()
