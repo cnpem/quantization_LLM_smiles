@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import json
 
 # 1. Carregar os dados
 df = pd.read_csv('results_smiles/results.csv')
@@ -172,8 +173,140 @@ def plotar_grafico_por_replica(df):
         plt.savefig(f"grafico_por_replica_{i}.png", dpi=150, bbox_inches="tight")
         plt.show()
 
+def plotar_tempo_resposta_minutos(caminho_json, nome_arquivo_saida):
+
+    # 1. Carregar os dados do arquivo JSON
+    with open(caminho_json, "r", encoding="utf-8") as f:
+        dados = json.load(f)
+
+    df = pd.DataFrame(dados)
+
+    # 2. Extrair o Modelo e a Quantização a partir da coluna 'model'
+    df["modelo"] = df["model"].apply(lambda x: "-".join(x.split("-")[:-1]))
+    df["quantizacao"] = df["model"].apply(lambda x: x.split("-")[-1])
+
+    # 3. Converter o tempo de resposta para minutos (ms / 60000)
+    df["duration_min"] = df["duration_ms"] / 60000.0
+
+    # 4. Remover os modelos Mistral do conjunto de dados
+    # df = df[~df["modelo"].str.contains("Mistral", case=False)]
+    # print(len(df[df["model"] == "Qwen3.6-35B-BF16"]))
+
+    # 5. Agrupar e calcular a média de 'duration_min'
+    df_grouped = (
+        df.groupby(["modelo", "quantizacao"])["duration_min"]
+        .mean()
+        .reset_index()
+    )
+
+    print(df_grouped)
+
+    # Definir os modelos filtrados e a ordem fixa das quantizações
+    modelos = sorted(df_grouped["modelo"].unique())
+    quantizacoes = ["BF16", "Q8", "Q6"]
+
+    x = np.arange(len(modelos))
+    largura = 0.8 / len(quantizacoes)
+
+    fig, ax = plt.subplots(figsize=(14, 8))
+
+    # Cores fixas associadas a cada tipo de quantização
+    cor_bf16 = "#55a868"  # Verde
+    cor_q8 = "#4e5de9"  # Azul
+    cor_q6 = "#ff0000"  # Vermelho
+
+    cor_map = {"BF16": cor_bf16, "Q8": cor_q8, "Q6": cor_q6}
+
+    # Limiar dinâmico para decidir a posição do texto na barra
+    max_val = df_grouped["duration_min"].max()
+    threshold = max_val * 0.75
+
+    for i, quant in enumerate(quantizacoes):
+        df_q = df_grouped[df_grouped["quantizacao"] == quant]
+        df_plot = (
+            pd.DataFrame({"modelo": modelos})
+            .merge(df_q, on="modelo", how="left")
+            .fillna(0)
+        )
+
+        deslocamento = (i - len(quantizacoes) / 2) * largura + largura / 2
+
+        # Plotar as barras correspondentes
+        ax.bar(
+            x + deslocamento,
+            df_plot["duration_min"],
+            largura,
+            color=cor_map[quant],
+            edgecolor="white",
+        )
+
+        # Adicionar os rótulos correspondentes a cada barra
+        for pos_x, altura_y in zip(x + deslocamento, df_plot["duration_min"]):
+            if altura_y == 0:
+                continue
+            if altura_y < threshold:
+                ax.text(
+                    pos_x,
+                    altura_y + (max_val * 0.01),
+                    quant,
+                    ha="center",
+                    va="bottom",
+                    fontsize=10,
+                    fontweight="bold",
+                    rotation=45,
+                )
+            else:
+                ax.text(
+                    pos_x,
+                    altura_y / 2,
+                    quant,
+                    ha="center",
+                    va="center",
+                    fontsize=10,
+                    fontweight="bold",
+                    rotation=45,
+                    color="white",
+                )
+
+    # Configuração de Grid e Escala em minutos
+    ax.grid(axis="y", linestyle="--", alpha=0.2)
+
+    # Escala dinâmica com passos de 5 em 5 minutos
+    y_step = 5
+    teto_grafico = np.ceil(max_val / y_step) * y_step + y_step
+    ax.set_yticks(np.arange(0, teto_grafico, y_step))
+    ax.set_ylim(0, teto_grafico)
+
+    # Títulos e Identificações dos Eixos
+    ax.set_xlabel("Modelos", fontsize=12, fontweight="bold", labelpad=10)
+    ax.set_ylabel(
+        "Tempo de Resposta Médio (minutos)", fontsize=12, fontweight="bold"
+    )
+    ax.set_title(
+        "Tempo de Resposta Médio por Modelo e Quantização (em Minutos)",
+        fontsize=14,
+        fontweight="bold",
+        pad=15,
+    )
+
+    ax.set_xticks(x)
+    ax.set_xticklabels(modelos, rotation=15, ha="right", fontsize=11)
+
+    # Legenda customizada
+    ax.legend(
+        quantizacoes,
+        bbox_to_anchor=(1.01, 1),
+        loc="upper left",
+        title="Quantização",
+    )
+
+    plt.tight_layout()
+    plt.savefig(nome_arquivo_saida, dpi=150, bbox_inches="tight")
+    plt.close()
+
 if __name__=="__main__":
-    primeira_leva, segunda_leva = preparar_dados(df, per_leva=True)
-    plotar_grafico(primeira_leva, 'grafico_primeira_leva.png')
-    dale = plotar_grafico_por_replica(primeira_leva)
+    # primeira_leva, segunda_leva = preparar_dados(df, per_leva=True)
+    # plotar_grafico(primeira_leva, 'grafico_primeira_leva.png')
+    # dale = plotar_grafico_por_replica(primeira_leva)
+    dale = plotar_tempo_resposta_minutos("/home/lucas.abner/Documentos/code/gcrm/metricas.json", "tempo_resposta_minutos_primeira_leva.png")
     print(dale)
