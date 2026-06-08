@@ -5,6 +5,7 @@ from rdkit.Chem import Descriptors, AllChem
 from rdkit import RDLogger
 from pathlib import Path
 import os
+import json
 
 RDLogger.DisableLog("rdApp.*")
 
@@ -50,7 +51,7 @@ def split_smiles(csv_smiles, nome_leva):
     novo_df = pd.DataFrame({"leva": [nome_leva], "replica": [arquivo_split[2].replace(".csv", "")], "total_smiles":[len(lst_smiles)], "total_smiles_validos": [len(lst_valid_smiles)], "total_smiles_duplicados": [smiles_duplicados]})
 
     caminho_results = "./results_smiles"
-    caminho_arquivo_csv = f"{caminho_results}/results.csv"
+    caminho_arquivo_csv = f"{caminho_results}/results_quarta_leva.csv"
     arquivo_existe = os.path.isfile(caminho_arquivo_csv)
 
     # mode='a' faz o append, adicionando a linha no final
@@ -58,18 +59,192 @@ def split_smiles(csv_smiles, nome_leva):
 
     return "Deu certo"
 
+# def split_total(csv_smiles="", metricas="", nome_leva=""):
+
+#     df = ""
+#     with open(metricas, "r", encoding="utf-8") as f:
+#         df = json.load(f)
+
+#     df = pd.DataFrame(df)
+
+#     df_smiles = pd.read_csv(csv_smiles, sep=",")
+
+#     lst_smiles = df_smiles["SMILES"].tolist()
+#     print("Total de Smiles gerados nesse ciclo: ", len(lst_smiles))
+
+#     lst_valid_smiles = validate_smiles(lst_smiles)
+#     print("Total de Smiles validos nesse ciclo: ", len(lst_valid_smiles))
+
+#     # smiles_duplicados = [x for x in lst_valid_smiles if lst_valid_smiles.count(x) > 1]
+#     smiles_duplicados = df_smiles.duplicated(subset=["SMILES"]).sum()
+#     print("Total de Smiles duplicados nesse ciclo: ", smiles_duplicados)
+
+#     # for smi in lst_smiles:
+#     #     # Pega o SMILES canônico para fazer a comparação correta
+#     #     mol = Chem.MolFromSmiles(str(smi))
+#     #     if mol is not None:
+#     #         print(f"O SMILE {smi} é válido!")
+#     #     else: 
+#     #         print(f"O SMILE {smi} é invalido!")
+
+#     df["duration_min"] = df["duration_ms"] / 60000.0
+#     df['token_per_second'] = df['tokens'].apply(lambda x: x['tokens_per_second'])
+
+#     df_grouped = (
+#         df.groupby(["model", "duration_min"])["token_per_second"]
+#         .mean()
+#         .reset_index()
+#     )
+
+#     # print(df_grouped)
+
+
+#     arquivo_split = csv_smiles.split("/")
+
+#     novo_df = pd.DataFrame({
+#         "leva": [nome_leva],
+#         "modelo": [df["model"]],
+#         "replica": [arquivo_split[-1].replace(".csv", "")], # Usar -1 evita quebrar se o caminho mudar de tamanho
+#         "total_smiles": [len(lst_smiles)], 
+#         "total_smiles_validos": [len(lst_valid_smiles)], 
+#         "total_smiles_duplicados": [smiles_duplicados], 
+#         "duration_min_media": [df["duration_min"]], 
+#         "token_per_second_medio": [df["token_per_second"]]
+#     })
+
+#     print(novo_df)
+#     # df_grouped = novo_df.groupby(['replica'])[['total_smiles', 'total_smiles_validos', 'total_smiles_duplicados']].mean().reset_index()
+
+#     # caminho_results = "./results_smiles"
+#     # caminho_arquivo_csv = f"{caminho_results}/results_{nome_leva}.csv"
+#     # arquivo_existe = os.path.isfile(caminho_arquivo_csv)
+
+#     # # mode='a' faz o append, adicionando a linha no final
+#     # novo_df.to_csv(caminho_arquivo_csv, mode='a', index=False, header=not arquivo_existe)
+
+#     # return "Deu certo"
+
+def split_total(csv_smiles="", metricas="", nome_leva=""):
+    # 1. Carregar o log completo de métricas (JSON)
+    with open(metricas, "r", encoding="utf-8") as f:
+        df_metricas = json.load(f)
+    df_metricas = pd.DataFrame(df_metricas)
+
+    # 2. Descobrir qual modelo e quantização estamos processando neste ciclo
+    # Exemplo: 'gemma-4-31B-Q8_replica_8.csv' -> 'gemma-4-31B-Q8'
+    arquivo_nome = csv_smiles.split("/")[-1]
+    modelo_com_quant = arquivo_nome.split("_replica")[0]
+
+    # 3. FILTRAR O JSON: Pegar apenas as linhas do modelo correto desta réplica
+    df_modelo_atual = df_metricas[df_metricas["model"] == modelo_com_quant].copy()
+
+    # Se por acaso o modelo não for encontrado no JSON, evita quebrar o código
+    if df_modelo_atual.empty:
+        print(
+            f"Aviso: O modelo {modelo_com_quant} não foi encontrado no arquivo de métricas."
+        )
+        return "Modelo não encontrado"
+
+    # 4. Ler e processar o CSV de SMILES
+    df_smiles = pd.read_csv(csv_smiles, sep=",")
+    lst_smiles = df_smiles["SMILES"].tolist()
+    lst_valid_smiles = validate_smiles(lst_smiles)
+    smiles_duplicados = df_smiles.duplicated(subset=["SMILES"]).sum()
+
+    print(f"\n--- Processando: {modelo_com_quant} ---")
+    print("Total de Smiles gerados: ", len(lst_smiles))
+    print("Total de Smiles válidos: ", len(lst_valid_smiles))
+    print("Total de Smiles duplicados: ", smiles_duplicados)
+
+    # 5. Calcular as métricas de tempo e velocidade APENAS para este modelo
+    df_modelo_atual["duration_min"] = df_modelo_atual["duration_ms"] / 60000.0
+    df_modelo_atual["token_per_second"] = df_modelo_atual["tokens"].apply(
+        lambda x: x["tokens_per_second"]
+    )
+
+    # 6. Separar o Modelo Base da Quantização para salvar estruturado
+    modelo_base = "-".join(modelo_com_quant.split("-")[:-1])  # Ex: gemma-4-31B
+    quantizacao = modelo_com_quant.split("-")[-1]  # Ex: Q8
+
+    # 7. Criar a linha única consolidada deste modelo/quantização
+    novo_df = pd.DataFrame(
+        {
+            "leva": [nome_leva],
+            "modelo": [modelo_base],
+            "quantizacao": [quantizacao],
+            "replica": [arquivo_nome.replace(".csv", "")],
+            "total_smiles": [len(lst_smiles)],
+            "total_smiles_validos": [len(lst_valid_smiles)],
+            "total_smiles_duplicados": [smiles_duplicados],
+            "duration_min_media": [
+                df_modelo_atual["duration_min"].mean()
+            ],  # Média do modelo correto
+            "token_per_second_medio": [
+                df_modelo_atual["token_per_second"].mean()
+            ],  # Média do modelo correto
+        }
+    )
+
+    df_grouped = novo_df.groupby(['modelo', 'quantizacao'])[['total_smiles', 'total_smiles_validos', 'total_smiles_duplicados']].sum().reset_index()
+    print(df_grouped)
+
+
+    # 8. Salvar fazendo Append (adicionando como nova linha)
+    caminho_results = "./results_smiles"
+    os.makedirs(caminho_results, exist_ok=True)  # Garante que a pasta existe
+    caminho_arquivo_csv = f"{caminho_results}/results_{nome_leva}_2.csv"
+    arquivo_existe = os.path.isfile(caminho_arquivo_csv)
+
+    novo_df.to_csv(
+        caminho_arquivo_csv,
+        mode="a",
+        index=False,
+        header=not arquivo_existe,
+    )
+
+    return "Deu certo"
 
 if __name__=="__main__":
     
     for pasta in os.listdir("./"):
         caminho_pasta = os.path.join("./", pasta)
         
-        if os.path.isdir(caminho_pasta) and pasta.startswith("csv_"):
+        if os.path.isdir(caminho_pasta) and pasta.startswith("csv_llms_quarta_leva"):
 
             nome_leva = pasta.replace("csv_llms_", "")
 
             for csv in os.listdir(caminho_pasta):
                 caminho_final = os.path.join(caminho_pasta, csv)
                 print(caminho_final)
-                dale = split_smiles(caminho_final, nome_leva)
+                dale = split_total(csv_smiles=caminho_final, metricas="/home/lucas.abner/Documentos/code/gcrm/quarta_leva_menos_moleculas/all_metrics.json",nome_leva=nome_leva)
                 print(dale)
+    df = pd.read_csv('/home/lucas.abner/Documentos/code/gcrm/results_smiles/results_quarta_leva_2.csv')
+    df_grouped = df.groupby(['modelo', 'quantizacao'])[['total_smiles', 'total_smiles_validos', 'total_smiles_duplicados']].sum().reset_index()
+    df_group_duration = df.groupby(["modelo", "quantizacao"])[["token_per_second_medio", "duration_min_media"]].mean().reset_index()
+
+
+    # df_total = pd.merge(
+    #     df, df_grouped, on=["modelo", "quantizacao"]
+    # )
+
+    df_total = pd.merge(
+        df_grouped, df_group_duration, on=["modelo", "quantizacao"]
+    )
+
+    # print(df_total)
+
+    df_total["% smiles validos"] = df_total.apply(lambda row: (row["total_smiles_validos"]/row["total_smiles"]) * 100, axis=1)
+
+    print(df_total)
+
+    caminho_results = "./results_smiles"
+    os.makedirs(caminho_results, exist_ok=True)  # Garante que a pasta existe
+    caminho_arquivo_csv = f"{caminho_results}/results_{nome_leva}_3.csv"
+    arquivo_existe = os.path.isfile(caminho_arquivo_csv)
+
+    df_total.to_csv(
+        caminho_arquivo_csv,
+        mode="a",
+        index=False,
+        header=not arquivo_existe,
+    )

@@ -1,0 +1,23 @@
+SMILES
+CC(=O)Oc1ccccc1C(=O)O
+CC(C)Cc1ccc(cc1)C(=O)O
+CC(=O)Nc1ccc(O)cc1
+CN1C=NC2=C1C(=O)N(C(=O)N2C)C
+CCCCNC(O)c1cccc2ccccc12
+CN1CCC2C1CC3=CC=C(C=C3)C2(C4=CC=C(C=C4)Cl)C(=O)
+CC1=CC=C(C=C1)S(=O)(=O)c2ccc(cc2)Nc3nc(c4[nH]cn4)C(OC)=C3
+"CN1C(=O)CSC2=E1... (typo in thought, will use correct below)"
+CN1C(=O)CSC2=C1C=C(C=C2)COC3=CC=C(C=C3)Cl
+"CC1=C(N(CCS)S(N)(=O)=O)C(=O)C2=E(C=C(Cl)C=C2)O1 -> typo in thought, will use correct below"
+CC1=C(N(CCS)S(N)(=O)=O)C(=O)C2=C(C=C(Cl)C=C2)O1
+CCC(C)NCC(O)c1ccc(OC)cc1
+CCn1ccnc1C(=O)NCCN2C(=O)CCN(Cc3ccn(C)c3=C4)C2=O
+C1=CC(=CC=C1)S(=O)(=O)NC2=CC=C(C=C2)N
+CCOC(=O)c1ccc(cc1)CN(C)CC
+CCOC(=O)C(C)Oc1cccc(C)c1C(=O)CN(CCO)Cc2cc(Cl)ccc2Cl
+CN1CCC(C2=CC(=CC=C2)C3=CC=C(C=C3)C(O)=C(O4)C4(C)C)C1
+CCOC(=O)NC(CNC(C)=O)C1=CC=CC=C1
+CC(C)(CN)C(=O)O
+COc1ccc(cc1)CC(NC(C)=O)c3ccccc3
+Cc1ccc(cc1)S(=O)(=O)N(C)c2ccccc2C(=O)OC
+CC(C)ON1C=NC2=C1C(=O)N(C(=O)N2C)C
