@@ -1,0 +1,23 @@
+SMILES
+I'll generate 20 different molecules using the available tools. Here are the SMILES representations:
+```
+CCO
+CC(=O)C
+CCC(=O)O
+CCOC(=O)C
+CCOC1=CC=CC=C1
+C1CCCCC1
+CC1=CC=CC=C1C(=O)O
+C1=CC=CC=C1C(=O)O
+CC1=CC=CC=C1C(=O)C(=O)O
+CCC1=CC=CC=C1C1=CC=CC=C1
+COC1=CC=CC=CN1
+CC1=CC=CC=CC1N
+C1CCNCC1
+CC1=CC=CN=C1O
+CC(=O)CC(=O)C
+CCOC(=O)C(=O)OC
+CC1=CC=CC=C1C(=O)N
+CC1=CC=CC=C1C(=O)C2=CC=CC=C2C(=O)N
+CC1=CC=CC=C1C2=CC=CC=CC2
+```

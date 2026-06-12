@@ -1,0 +1,172 @@
+[
+    {
+        "id": 0,
+        "timestamp": "2026-06-11T14:28:24.899084411-03:00",
+        "model": "phi-4-14B-BF16",
+        "req_path": "/v1/chat/completions",
+        "resp_content_type": "text/event-stream",
+        "resp_status_code": 200,
+        "tokens": {
+            "cache_tokens": 0,
+            "input_tokens": 283,
+            "output_tokens": 7009,
+            "prompt_per_second": 1118.9839783636737,
+            "tokens_per_second": 12.414272443718694
+        },
+        "duration_ms": 585350,
+        "has_capture": true
+    },
+    {
+        "id": 1,
+        "timestamp": "2026-06-11T14:47:49.823568972-03:00",
+        "model": "phi-4-14B-BF16",
+        "req_path": "/v1/chat/completions",
+        "resp_content_type": "text/event-stream",
+        "resp_status_code": 200,
+        "tokens": {
+            "cache_tokens": 282,
+            "input_tokens": 1,
+            "output_tokens": 6363,
+            "prompt_per_second": 13.707643381949776,
+            "tokens_per_second": 12.618021307893741
+        },
+        "duration_ms": 504642,
+        "has_capture": true
+    },
+    {
+        "id": 2,
+        "timestamp": "2026-06-11T15:00:02.89157159-03:00",
+        "model": "phi-4-14B-BF16",
+        "req_path": "/v1/chat/completions",
+        "resp_content_type": "application/json; charset=utf-8",
+        "resp_status_code": 200,
+        "tokens": {
+            "cache_tokens": 224,
+            "input_tokens": 8,
+            "output_tokens": 691,
+            "prompt_per_second": 30.82530912005302,
+            "tokens_per_second": 14.270045262683652
+        },
+        "duration_ms": 48932,
+        "has_capture": true
+    },
+    {
+        "id": 3,
+        "timestamp": "2026-06-11T15:13:47.974179112-03:00",
+        "model": "phi-4-14B-BF16",
+        "req_path": "/v1/chat/completions",
+        "resp_content_type": "",
+        "resp_status_code": 502,
+        "tokens": {
+            "cache_tokens": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "prompt_per_second": 0,
+            "tokens_per_second": 0
+        },
+        "duration_ms": 14987,
+        "has_capture": false
+    },
+    {
+        "id": 4,
+        "timestamp": "2026-06-11T15:14:55.965191264-03:00",
+        "model": "phi-4-14B-BF16",
+        "req_path": "/v1/chat/completions",
+        "resp_content_type": "text/event-stream",
+        "resp_status_code": 200,
+        "tokens": {
+            "cache_tokens": 0,
+            "input_tokens": 229,
+            "output_tokens": 969,
+            "prompt_per_second": 1130.9312156769784,
+            "tokens_per_second": 14.29470100154517
+        },
+        "duration_ms": 83251,
+        "has_capture": true
+    },
+    {
+        "id": 5,
+        "timestamp": "2026-06-11T15:15:31.215128641-03:00",
+        "model": "phi-4-14B-BF16",
+        "req_path": "/v1/chat/completions",
+        "resp_content_type": "application/json; charset=utf-8",
+        "resp_status_code": 200,
+        "tokens": {
+            "cache_tokens": 224,
+            "input_tokens": 8,
+            "output_tokens": 500,
+            "prompt_per_second": 96.04418032294855,
+            "tokens_per_second": 14.238774740903423
+        },
+        "duration_ms": 87578,
+        "has_capture": true
+    },
+    {
+        "id": 6,
+        "timestamp": "2026-06-11T15:15:31.374810489-03:00",
+        "model": "phi-4-14B-BF16",
+        "req_path": "/v1/chat/completions",
+        "resp_content_type": "application/json; charset=utf-8",
+        "resp_status_code": 200,
+        "tokens": {
+            "cache_tokens": 224,
+            "input_tokens": 5,
+            "output_tokens": 1,
+            "prompt_per_second": 38.72006938636434,
+            "tokens_per_second": 1000000
+        },
+        "duration_ms": 49632,
+        "has_capture": true
+    },
+    {
+        "id": 7,
+        "timestamp": "2026-06-11T15:15:49.183814179-03:00",
+        "model": "phi-4-14B-BF16",
+        "req_path": "/v1/chat/completions",
+        "resp_content_type": "application/json; charset=utf-8",
+        "resp_status_code": 200,
+        "tokens": {
+            "cache_tokens": 228,
+            "input_tokens": 1,
+            "output_tokens": 1,
+            "prompt_per_second": 13.747594171020072,
+            "tokens_per_second": 1000000
+        },
+        "duration_ms": 78,
+        "has_capture": true
+    },
+    {
+        "id": 8,
+        "timestamp": "2026-06-11T15:20:26.349550799-03:00",
+        "model": "phi-4-14B-BF16",
+        "req_path": "/v1/chat/completions",
+        "resp_content_type": "application/json; charset=utf-8",
+        "resp_status_code": 200,
+        "tokens": {
+            "cache_tokens": 224,
+            "input_tokens": 8,
+            "output_tokens": 500,
+            "prompt_per_second": 100.08757662955085,
+            "tokens_per_second": 14.49052880199814
+        },
+        "duration_ms": 34589,
+        "has_capture": true
+    },
+    {
+        "id": 9,
+        "timestamp": "2026-06-11T15:33:24.00635701-03:00",
+        "model": "phi-4-14B-BF16",
+        "req_path": "/v1/chat/completions",
+        "resp_content_type": "",
+        "resp_status_code": 502,
+        "tokens": {
+            "cache_tokens": 0,
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "prompt_per_second": 0,
+            "tokens_per_second": 0
+        },
+        "duration_ms": 1883,
+        "has_capture": false
+    }
+]

@@ -1,0 +1,15 @@
+CC(C)C1=CC=CC=C1C2=CC=CC=C2N
+O=c1cc[nH]c(CC(=O)O)c1C(=O)O
+N1CCCCC1C(=O)NCC(=O)O
+c1ccccc1C(=O)NCC(=O)O
+C1=CC=CC=C1C2=CC=CC=C2C(=O)O
+CC1=CC=CC=C1C(=O)O
+n1ccc(=O)c(=N)n1CCCC(=O)N
+s1ccccc1C(=O)NCC
+O1CCCCC1C(=O)N
+c1ccccc1CC(=O)N
+NS(=O)(=O)c1ccccc1C(=O)O
+c1ccccc1C(=N)N
+C1CCCCC1C1=CC=CC=C1
+c1ccccc1C2=CC=CC=C2C
+O=c1cc2ccccc2oc1 (20 different molecules)

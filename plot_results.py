@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import json
 
 # 1. Carregar os dados
-df = pd.read_csv('results_smiles/results_quarta_leva.csv')
+df = pd.read_csv('results_smiles/results_quarta_leva_2.csv')
 
 def preparar_dados(df, per_leva=False):
     # 2. Extrair o Modelo e a Quantização da coluna 'replica'
@@ -16,6 +16,7 @@ def preparar_dados(df, per_leva=False):
         df_c['modelo'] = df_c['modelo_quant'].apply(lambda x: x.rsplit('-', 1)[0])
         # Pega tudo depois do último hífen como quantização
         df_c['quantizacao'] = df_c['modelo_quant'].apply(lambda x: x.rsplit('-', 1)[1])
+        df_c = df_c[~df_c["modelo"].str.contains("Mistral", case=False)]
 
         primeira_leva = df_c[df_c['leva'] == 'primeira_leva']
         segunda_leva = df_c[df_c['leva'] == 'segunda_leva']
@@ -27,26 +28,29 @@ def preparar_dados(df, per_leva=False):
         df_c['modelo'] = df_c['modelo_quant'].apply(lambda x: x.rsplit('-', 1)[0])
         # Pega tudo depois do último hífen como quantização
         df_c['quantizacao'] = df_c['modelo_quant'].apply(lambda x: x.rsplit('-', 1)[1])
-        df_c = df_c[~df_c["modelo"].str.contains("Mistral", case=False)]
-        
+        df_c = df_c[~df_c["replica"].str.contains("Mistral3.2", case=False)]
+
         return df_c
 
-import pandas as pd
-import numpy as np
-import matplotlib.pyplot as plt
+def plotar_grafico_media(leva, nome_arquivo):
+    # 1. Agrupamos por MÉDIA para ter a altura média das fatias por réplica
+    df_mean = leva.groupby(['modelo', 'quantizacao'])[['total_smiles', 'total_smiles_validos', 'total_smiles_duplicados']].mean().reset_index()
+    
+    # 2. Agrupamos por DESVIO PADRÃO (std) para medir a variação entre as réplicas
+    df_std = leva.groupby(['modelo', 'quantizacao'])[['total_smiles_validos']].std().reset_index().fillna(0)
+    
+    # Combinamos a média e o desvio padrão
+    df_grouped = pd.merge(df_mean, df_std, on=['modelo', 'quantizacao'], suffixes=('', '_std'))
 
-def plotar_grafico(leva, nome_arquivo):
-    df_grouped = leva.groupby(['modelo', 'quantizacao'])[['total_smiles', 'total_smiles_validos', 'total_smiles_duplicados']].sum().reset_index()
-
-    modelos = df_grouped['modelo'].unique()
-    quantizacoes = df_grouped['quantizacao'].unique()
+    # Ordem fixa para as quantizações no eixo X
+    modelos = sorted(df_grouped['modelo'].unique())
+    quantizacoes = ['BF16', 'Q8', 'Q6', 'Q4']  
 
     x = np.arange(len(modelos))
     largura = 0.8 / len(quantizacoes)
 
     fig, ax = plt.subplots(figsize=(16, 8))
 
-    # Cores fixas que você escolheu
     cor_valido = "#55a868"     # Verde
     cor_duplicado = "#4e5de9"  # Azul
     cor_invalido = "#ff0000"   # Vermelho
@@ -57,44 +61,49 @@ def plotar_grafico(leva, nome_arquivo):
         
         deslocamento = (i - len(quantizacoes)/2) * largura + largura/2
         
-        # MATEMÁTICA DO EMPILHAMENTO
-        # Para empilhar sem ultrapassar o "Total de SMILES", precisamos das fatias exatas:
+        # MATEMÁTICA DO EMPILHAMENTO (Baseado nas médias)
         validos_unicos = df_plot['total_smiles_validos'] - df_plot['total_smiles_duplicados']
         invalidos = df_plot['total_smiles'] - df_plot['total_smiles_validos']
         
-        # PLOT 1: VÁLIDOS ÚNICOS (Começa no 0, fica na BASE)
+        # PLOT 1: VÁLIDOS ÚNICOS (Base)
         ax.bar(x + deslocamento, validos_unicos, largura, color=cor_valido, edgecolor='white')
 
-        # PLOT 2: DUPLICADOS (Começa onde os válidos únicos terminam, fica no MEIO)
+        # PLOT 2: DUPLICADOS (Meio)
         ax.bar(x + deslocamento, df_plot['total_smiles_duplicados'], largura, 
-            bottom=validos_unicos, color=cor_duplicado, edgecolor='white')
+               bottom=validos_unicos, color=cor_duplicado, edgecolor='white')
 
-        # PLOT 3: INVÁLIDOS (Começa onde os válidos totais terminam, fica no TOPO)
+        # PLOT 3: INVÁLIDOS (Topo) + DESVIO PADRÃO
+        # O yerr continua funcionando exatamente igual, mas agora aplicado sobre a barra da média!
         ax.bar(x + deslocamento, invalidos, largura, 
-            bottom=df_plot['total_smiles_validos'], color=cor_invalido, edgecolor='white')
+               bottom=df_plot['total_smiles_validos'], color=cor_invalido, edgecolor='white')
         
+        # Ajuste dos textos das legendas internas das barras
         for pos_x, altura_y in zip(x + deslocamento, df_plot["total_smiles"]):
-            if altura_y < 550:
-                ax.text(pos_x, altura_y + 4.5, quant, ha="center", va="bottom", fontsize=9, fontweight='bold', rotation=60)
-            else:
-                ax.text(pos_x, (altura_y * 0.9)/2, quant, ha="center", va="top", fontsize=9, fontweight='bold', rotation=60)
+            if altura_y == 0:
+                continue
+            
+            # Texto logo acima do topo da barra empilhada
+            posicao_texto_y = altura_y + 0.3
+            ax.text(pos_x, posicao_texto_y, quant, ha="center", va="bottom", fontsize=9, fontweight='bold', rotation=60)
 
-    # Grid e Escala (movido para fora do loop para não repetir à toa)
     ax.grid(axis='y', linestyle='--', alpha=0.2)
-    teto_grafico = df_grouped['total_smiles'].max() + 50
-    ax.set_yticks(np.arange(0, teto_grafico, 50))
+    
+    # Ajuste dinâmico do teto do gráfico para a escala de médias (passos menores, ex: de 5 em 5)
+    max_altura_com_erro = (df_grouped['total_smiles'] + df_grouped['total_smiles_validos_std']).max()
+    y_step = 5
+    teto_grafico = int(np.ceil(max_altura_com_erro / float(y_step)) * y_step) + y_step
+    
+    ax.set_yticks(np.arange(0, teto_grafico, y_step))
+    ax.set_ylim(0, teto_grafico)
 
-    ax.set_ylim(0, 600)  # Ajuste o limite superior conforme necessário
-
-    ax.set_xlabel('Modelos', fontsize=12, fontweight='bold', labelpad=10)
-    ax.set_ylabel('Quantidade de SMILES', fontsize=12, fontweight='bold')
-    ax.set_title('Validação de SMILES por Modelo e Quantização', fontsize=14, fontweight='bold', pad=15)
+    ax.set_xlabel('Models', fontsize=12, fontweight='bold', labelpad=10)
+    ax.set_ylabel('Mean SMILES per Replica', fontsize=12, fontweight='bold')
+    ax.set_title('SMILES Validation per Model and Quantization (Mean ± Std Dev)', fontsize=14, fontweight='bold', pad=15)
 
     ax.set_xticks(x)
-    ax.set_xticklabels(modelos, rotation=45, ha='right', fontsize=10)
+    ax.set_xticklabels(modelos, rotation=15, ha='right', fontsize=11)
 
-    # Legenda ajustada
-    ax.legend(["Válidos", "Duplicados", "Inválidos"], bbox_to_anchor=(1.01, 1), loc='upper left')
+    ax.legend(["Unique Valid", "Duplicates", "Invalid"], bbox_to_anchor=(1.01, 1), loc='upper left')
 
     plt.tight_layout()
     plt.savefig(nome_arquivo, dpi=150, bbox_inches="tight")
@@ -166,16 +175,16 @@ def plotar_grafico_por_replica(df):
             
 
         # Textos e firulas
-        ax.set_xlabel('Modelos', fontsize=12, fontweight='bold', labelpad=10)
-        ax.set_ylabel('Quantidade de SMILES', fontsize=12, fontweight='bold', labelpad=10)
+        ax.set_xlabel('Models', fontsize=12, fontweight='bold', labelpad=10)
+        ax.set_ylabel('SMILES Count', fontsize=12, fontweight='bold', labelpad=10)
         # ax.set_ylim(0, df_plot['total_smiles'].max() + 50)
         # O título agora reflete a réplica que estamos olhando
-        ax.set_title(f'Validação de SMILES por Modelo e Quantização - Réplica {i}', fontsize=14, fontweight='bold', pad=15)
+        ax.set_title(f'SMILES Validation per Model and Quantization - Replica {i}', fontsize=14, fontweight='bold', pad=15)
         
         ax.set_xticks(x)
         ax.set_xticklabels(modelo, rotation=45, ha='right', fontsize=10)
         
-        ax.legend(["Válidos", "Duplicados", "Inválidos"], bbox_to_anchor=(1.01, 1), loc='upper left')
+        ax.legend(["Valid", "Duplicates", "Invalid"], bbox_to_anchor=(1.01, 1), loc='upper left')
         
         plt.tight_layout()
         plt.savefig(f"grafico_por_replica_{i}.png", dpi=150, bbox_inches="tight")
@@ -192,6 +201,8 @@ def plotar_tempo_resposta_minutos(caminho_json, nome_arquivo_saida):
     # 2. Extrair o Modelo e a Quantização a partir da coluna 'model'
     df["modelo"] = df["model"].apply(lambda x: "-".join(x.split("-")[:-1]))
     df["quantizacao"] = df["model"].apply(lambda x: x.split("-")[-1])
+
+    df = df[~df["modelo"].str.contains("Mistral", case=False)]
 
     # 3. Converter o tempo de resposta para minutos (ms / 60000)
     df["duration_min"] = df["duration_ms"] / 60000.0
@@ -286,12 +297,12 @@ def plotar_tempo_resposta_minutos(caminho_json, nome_arquivo_saida):
     ax.set_ylim(0, teto_grafico)
 
     # Títulos e Identificações dos Eixos
-    ax.set_xlabel("Modelos", fontsize=12, fontweight="bold", labelpad=10)
+    ax.set_xlabel("Models", fontsize=12, fontweight="bold", labelpad=10)
     ax.set_ylabel(
-        "Tempo de Resposta Médio (minutos)", fontsize=12, fontweight="bold"
+        "Mean Response Time (minutes)", fontsize=12, fontweight="bold"
     )
     ax.set_title(
-        "Tempo de Resposta Médio por Modelo e Quantização (em Minutos)",
+        "Mean Response Time per Model and Quantization (in Minutes)",
         fontsize=14,
         fontweight="bold",
         pad=15,
@@ -305,7 +316,7 @@ def plotar_tempo_resposta_minutos(caminho_json, nome_arquivo_saida):
         quantizacoes,
         bbox_to_anchor=(1.01, 1),
         loc="upper left",
-        title="Quantização",
+        title="Quantization",
     )
 
     plt.tight_layout()
@@ -329,6 +340,8 @@ def plotar_tokens_resposta_minutos(caminho_json, nome_arquivo_saida):
     # 3. Converter o tempo de resposta para minutos (ms / 60000)
     df["duration_min"] = df["duration_ms"]
     df['token_per_second'] = df['tokens'].apply(lambda x: x['tokens_per_second'])
+
+    df = df[~df["modelo"].str.contains("Mistral", case=False)]
 
     print(df["token_per_second"])
 
@@ -422,12 +435,12 @@ def plotar_tokens_resposta_minutos(caminho_json, nome_arquivo_saida):
     ax.set_ylim(0, teto_grafico)
 
     # Títulos e Identificações dos Eixos
-    ax.set_xlabel("Modelos", fontsize=12, fontweight="bold", labelpad=10)
+    ax.set_xlabel("Models", fontsize=12, fontweight="bold", labelpad=10)
     ax.set_ylabel(
-        "Tokens por segundo Médio (segundos)", fontsize=12, fontweight="bold"
+        "Mean Tokens per Second (tokens/s)", fontsize=12, fontweight="bold"
     )
     ax.set_title(
-        "Tokens por segundo Médio por Modelo e Quantização",
+        "Mean Tokens per Second per Model and Quantization",
         fontsize=14,
         fontweight="bold",
         pad=15,
@@ -441,7 +454,7 @@ def plotar_tokens_resposta_minutos(caminho_json, nome_arquivo_saida):
         quantizacoes,
         bbox_to_anchor=(1.01, 1),
         loc="upper left",
-        title="Quantização",
+        title="Quantization",
     )
 
     plt.tight_layout()
@@ -451,7 +464,8 @@ def plotar_tokens_resposta_minutos(caminho_json, nome_arquivo_saida):
 if __name__=="__main__":
     # primeira_leva, segunda_leva = preparar_dados(df, per_leva=True)
     quarta_leva = preparar_dados(df)
-    plotar_grafico(quarta_leva, 'grafico_quarta_leva.png')
+    plotar_grafico_media(quarta_leva, 'grafico_quarta_leva_todas_q.png')
     # dale = plotar_grafico_por_replica(primeira_leva)
-    # dale = plotar_tokens_resposta_minutos("/home/lucas.abner/Documentos/code/gcrm/quarta_leva_menos_moleculas/all_metrics.json", "tempo_tokens_segundos_quarta_leva.png")
+    # dale = plotar_tokens_resposta_minutos("/home/lucas.abner/Documentos/code/gcrm/quarta_leva_menos_moleculas/all_metrics.json", "tokens_segundos_quarta_leva.png")
+    # dale = plotar_tempo_resposta_minutos("/home/lucas.abner/Documentos/code/gcrm/quarta_leva_menos_moleculas/all_metrics.json", "tempo_resposta_min_quarta_leva.png")
     # print(dale)

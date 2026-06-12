@@ -10,6 +10,7 @@ def chamada_llm(message, model_id):
     headers = {"Content-Type": "application/json"}
     payload = {"model": model_id, "messages": messages, "stream": False}
 
+
     response = requests.post(url=url, headers=headers, json=payload)
     response.raise_for_status()
 
@@ -38,7 +39,7 @@ def teste_llms(prompt: str, list_models: list):
     metrics_response.raise_for_status()
     metrics = metrics_response.json()
 
-    with open(f"{leva}/all_metrics.json", "w", encoding="utf-8") as f:
+    with open(f"{leva}/metrics_phi.json", "w", encoding="utf-8") as f:
         json.dump(metrics, f, indent=4)
 
     print(f"Métricas salvas: {len(metrics)} entradas")
@@ -51,19 +52,30 @@ if __name__=="__main__":
 
     # models = ["gemma-4-31B-Q8", "Qwen3.6-35B-Q8", "gemma-4-26B-Q6", "gemma-4-31B-Q6", "Qwen3.6-27B-Q6", "Qwen3.6-35B-Q6", "Ministral3-14B-BF16", "Ministral3-14B-Q8", "Ministral3-14B-Q6", "Magistral1.2-24B-B16", "Magistral1.2-24B-Q8", "Magistral1.2-24B-Q6", "Qwen3.6-27B-BF16",  "Qwen3.6-27B-Q8"]
 
+    # models = [
+        # "gpt-oss-120B-BF16",
+        # "gpt-oss-120B-Q8",
+        # "gpt-oss-120B-Q6",
+        # "gemma-4-31B-BF16",
+        # "gemma-4-31B-Q8",
+        # "gemma-4-31B-Q6",
+        # "Qwen3.6-35B-BF16",
+        # "Qwen3.6-35B-Q8",
+        # "Qwen3.6-35B-Q6",
+        # "Mistral3.2-24B-BF16",
+        # "Mistral3.2-24B-Q8",
+        # "Mistral3.2-24B-Q6",
+    # ]
+
     models = [
-        "gpt-oss-120B-BF16",
-        "gpt-oss-120B-Q8",
-        "gpt-oss-120B-Q6",
-        "gemma-4-31B-BF16",
-        "gemma-4-31B-Q8",
-        "gemma-4-31B-Q6",
-        "Qwen3.6-35B-BF16",
-        "Qwen3.6-35B-Q8",
-        "Qwen3.6-35B-Q6",
-        "Mistral3.2-24B-BF16",
-        "Mistral3.2-24B-Q8",
-        "Mistral3.2-24B-Q6",
+        # 'phi-4-14B-BF16',
+        # 'phi-4-14B-Q8',
+        # 'phi-4-14B-Q6',
+        'phi-4-14B-Q4',
+        # 'Mistral4-119B-Q4',
+        # 'Mistral4-119B-Q6',
+        # 'Mistral4-119B-Q8',
+        # 'Mistral4-119B-BF16',
     ]
 
     dale = teste_llms("You are a medicinal chemist. Please generate 20 different molecules. Please make sure to adhere to the following output format restrictions: 1. Report only the SMILES of the molecules in your final answer; 2. Report one SMILES per line and nothing else.", models)

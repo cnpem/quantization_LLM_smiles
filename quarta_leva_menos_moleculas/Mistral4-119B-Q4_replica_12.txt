@@ -1,0 +1,23 @@
+Here are 20 diverse medicinally relevant molecules represented as SMILES:
+
+```
+C1CC2=C3C(CC1)C(=CC(=C3)C2)C(=O)N
+CC(=O)c1ccc(C(=O)NCCC(=O)O)cc1
+CC(=O)c1ccc(-c2ccccc2)cc1
+Cc1ccc(cc1)C(=O)N[C@@H](C)C(=O)O
+Cc1ccc(cc1)S(=O)(=O)N
+CC(C)(C)C(=O)NCC(=O)N
+COc1cc(ccc1OC)C(=O)N
+CC(=O)Nc1ccc2c(c1)C(=O)N2C(=O)O
+Cc1ccccc1C(=O)N
+CC(=O)c1ccc(cc1)[C@H]1CC[C@@H](CC1)C(=O)O
+Cc1ccc(cc1)C(=O)N[C@H](C)C
+CC(=O)c1ccc2c(c1)C(=O)NCCc2
+Cc1ccc(cc1)C(=O)Nc2ccccc2
+CC(=O)Nc1ccccc1C(=O)N
+Cc1ccc(cc1)C(=O)Nc2ccccc2C(=O)N
+CC(=O)c1ccc(cc1)c1ccc(cc1)C(=O)N
+Cc1ccc(cc1)C(=O)Nc2ccccc2C(=O)O
+COc1ccc(cc1)S(=O)(=O)N
+CC(=O)c1ccc(cc1)S(=O)(=O)N
+```

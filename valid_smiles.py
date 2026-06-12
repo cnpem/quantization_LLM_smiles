@@ -35,15 +35,6 @@ def split_smiles(csv_smiles, nome_leva):
     # smiles_duplicados = [x for x in lst_valid_smiles if lst_valid_smiles.count(x) > 1]
     smiles_duplicados = df_smiles.duplicated(subset=["SMILES"]).sum()
     print("Total de Smiles duplicados nesse ciclo: ", smiles_duplicados)
-
-    # for smi in lst_smiles:
-    #     # Pega o SMILES canônico para fazer a comparação correta
-    #     mol = Chem.MolFromSmiles(str(smi))
-    #     if mol is not None:
-    #         print(f"O SMILE {smi} é válido!")
-    #     else: 
-    #         print(f"O SMILE {smi} é invalido!")
-
         
 
     arquivo_split = csv_smiles.split("/")
@@ -58,71 +49,6 @@ def split_smiles(csv_smiles, nome_leva):
     novo_df.to_csv(caminho_arquivo_csv, mode='a', index=False, header=not arquivo_existe)
 
     return "Deu certo"
-
-# def split_total(csv_smiles="", metricas="", nome_leva=""):
-
-#     df = ""
-#     with open(metricas, "r", encoding="utf-8") as f:
-#         df = json.load(f)
-
-#     df = pd.DataFrame(df)
-
-#     df_smiles = pd.read_csv(csv_smiles, sep=",")
-
-#     lst_smiles = df_smiles["SMILES"].tolist()
-#     print("Total de Smiles gerados nesse ciclo: ", len(lst_smiles))
-
-#     lst_valid_smiles = validate_smiles(lst_smiles)
-#     print("Total de Smiles validos nesse ciclo: ", len(lst_valid_smiles))
-
-#     # smiles_duplicados = [x for x in lst_valid_smiles if lst_valid_smiles.count(x) > 1]
-#     smiles_duplicados = df_smiles.duplicated(subset=["SMILES"]).sum()
-#     print("Total de Smiles duplicados nesse ciclo: ", smiles_duplicados)
-
-#     # for smi in lst_smiles:
-#     #     # Pega o SMILES canônico para fazer a comparação correta
-#     #     mol = Chem.MolFromSmiles(str(smi))
-#     #     if mol is not None:
-#     #         print(f"O SMILE {smi} é válido!")
-#     #     else: 
-#     #         print(f"O SMILE {smi} é invalido!")
-
-#     df["duration_min"] = df["duration_ms"] / 60000.0
-#     df['token_per_second'] = df['tokens'].apply(lambda x: x['tokens_per_second'])
-
-#     df_grouped = (
-#         df.groupby(["model", "duration_min"])["token_per_second"]
-#         .mean()
-#         .reset_index()
-#     )
-
-#     # print(df_grouped)
-
-
-#     arquivo_split = csv_smiles.split("/")
-
-#     novo_df = pd.DataFrame({
-#         "leva": [nome_leva],
-#         "modelo": [df["model"]],
-#         "replica": [arquivo_split[-1].replace(".csv", "")], # Usar -1 evita quebrar se o caminho mudar de tamanho
-#         "total_smiles": [len(lst_smiles)], 
-#         "total_smiles_validos": [len(lst_valid_smiles)], 
-#         "total_smiles_duplicados": [smiles_duplicados], 
-#         "duration_min_media": [df["duration_min"]], 
-#         "token_per_second_medio": [df["token_per_second"]]
-#     })
-
-#     print(novo_df)
-#     # df_grouped = novo_df.groupby(['replica'])[['total_smiles', 'total_smiles_validos', 'total_smiles_duplicados']].mean().reset_index()
-
-#     # caminho_results = "./results_smiles"
-#     # caminho_arquivo_csv = f"{caminho_results}/results_{nome_leva}.csv"
-#     # arquivo_existe = os.path.isfile(caminho_arquivo_csv)
-
-#     # # mode='a' faz o append, adicionando a linha no final
-#     # novo_df.to_csv(caminho_arquivo_csv, mode='a', index=False, header=not arquivo_existe)
-
-#     # return "Deu certo"
 
 def split_total(csv_smiles="", metricas="", nome_leva=""):
     # 1. Carregar o log completo de métricas (JSON)
@@ -167,15 +93,24 @@ def split_total(csv_smiles="", metricas="", nome_leva=""):
     quantizacao = modelo_com_quant.split("-")[-1]  # Ex: Q8
 
     # 7. Criar a linha única consolidada deste modelo/quantização
+    total = len(lst_smiles)
+    validos = len(lst_valid_smiles)
+    invalidos = total - validos
+
+    pct_validos = (validos / total) * 100 if total > 0 else 0.0
+    pct_invalidos = (invalidos / total) * 100 if total > 0 else 0.0
+
     novo_df = pd.DataFrame(
         {
             "leva": [nome_leva],
             "modelo": [modelo_base],
             "quantizacao": [quantizacao],
             "replica": [arquivo_nome.replace(".csv", "")],
-            "total_smiles": [len(lst_smiles)],
-            "total_smiles_validos": [len(lst_valid_smiles)],
+            "total_smiles": [total],
+            "total_smiles_validos": [validos],
             "total_smiles_duplicados": [smiles_duplicados],
+            "pct_validos": [pct_validos],
+            "pct_invalidos": [pct_invalidos],
             "duration_min_media": [
                 df_modelo_atual["duration_min"].mean()
             ],  # Média do modelo correto
