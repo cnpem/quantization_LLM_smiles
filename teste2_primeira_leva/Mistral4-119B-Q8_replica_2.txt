@@ -1,0 +1,1 @@
+I need the actual SMILES strings of reference molecules to generate drug-like molecules. Please provide the SMILES data so I can proceed with the task.

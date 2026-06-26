@@ -512,14 +512,160 @@ def plot_porcentagem_com_desvio():
         plt.close(fig)
 
 
+def plot_porcentagem_combinado():
+    """
+    Plota a porcentagem média (± desvio padrão) de SMILES válidos e inválidos
+    em uma única imagem com dois subplots empilhados verticalmente,
+    com legenda compartilhada indicando as cores de cada quantização.
+    """
+    df_pct = pd.read_csv("results_smiles/results_quarta_leva_2.csv")
+
+    # Tratamento dos nomes dos modelos
+    df_pct["modelo_quant"] = df_pct["replica"].apply(
+        lambda x: x.split("_replica_")[0]
+    )
+    df_pct["modelo"] = df_pct["modelo_quant"].apply(
+        lambda x: x.rsplit("-", 1)[0]
+    )
+    df_pct["quantizacao"] = df_pct["modelo_quant"].apply(
+        lambda x: x.rsplit("-", 1)[1]
+    )
+    df_pct = df_pct[~df_pct["modelo"].str.contains("Mistral3.2", case=False)]
+
+    # Calcular porcentagens por réplica
+    if "pct_validos" not in df_pct.columns:
+        df_pct["pct_validos"] = (
+            df_pct["total_smiles_validos"] / df_pct["total_smiles"]
+        ) * 100
+    if "pct_invalidos" not in df_pct.columns:
+        df_pct["pct_invalidos"] = (
+            (df_pct["total_smiles"] - df_pct["total_smiles_validos"])
+            / df_pct["total_smiles"]
+        ) * 100
+
+    # Média e desvio padrão
+    cols_pct = ["pct_validos", "pct_invalidos"]
+    df_mean = (
+        df_pct.groupby(["modelo", "quantizacao"])[cols_pct]
+        .mean()
+        .reset_index()
+    )
+    df_std = (
+        df_pct.groupby(["modelo", "quantizacao"])[cols_pct]
+        .std()
+        .reset_index()
+        .fillna(0)
+    )
+    df_grouped = pd.merge(
+        df_mean, df_std, on=["modelo", "quantizacao"], suffixes=("", "_std")
+    )
+
+    modelos = sorted(df_grouped["modelo"].unique())
+    quantizacoes = ["BF16", "Q8", "Q6", "Q4"]
+
+    x = np.arange(len(modelos))
+    largura = 0.8 / len(quantizacoes)
+
+    cor_map = {
+        "BF16": "#55a868",
+        "Q8": "#4e5de9",
+        "Q6": "#ff0000",
+        "Q4": "#ffe600",
+    }
+
+    # Configuração dos dois subplots: (coluna, título)
+    config_subplots = [
+        ("pct_validos", "% Valid SMILES"),
+        ("pct_invalidos", "% Invalid SMILES"),
+    ]
+
+    fig, axes = plt.subplots(
+        nrows=2, ncols=1, figsize=(14, 14), sharex=True
+    )
+
+    for ax, (coluna, titulo) in zip(axes, config_subplots):
+        for i, quant in enumerate(quantizacoes):
+            df_q = df_grouped[df_grouped["quantizacao"] == quant]
+            df_plot = (
+                pd.DataFrame({"modelo": modelos})
+                .merge(df_q, on="modelo", how="left")
+                .fillna(0)
+            )
+
+            deslocamento = (i - len(quantizacoes) / 2) * largura + largura / 2
+
+            ax.bar(
+                x + deslocamento,
+                df_plot[coluna],
+                largura,
+                color=cor_map[quant],
+                edgecolor="white",
+                yerr=df_plot[f"{coluna}_std"],
+                ecolor="black",
+                capsize=3,
+                error_kw={"elinewidth": 1.2},
+                label=quant,
+            )
+
+            # Rótulo de texto acima do desvio padrão
+            for pos_x, altura_y, desvio_y in zip(
+                x + deslocamento, df_plot[coluna], df_plot[f"{coluna}_std"]
+            ):
+                if altura_y == 0:
+                    continue
+                posicao_y = altura_y + desvio_y + 0.5
+                ax.text(
+                    pos_x,
+                    posicao_y,
+                    quant,
+                    ha="center",
+                    va="bottom",
+                    fontsize=8,
+                    fontweight="bold",
+                    rotation=45,
+                )
+
+        ax.grid(axis="y", linestyle="--", alpha=0.2)
+        ax.set_title(titulo, fontsize=14, fontweight="bold", pad=12)
+        ax.set_ylabel("Mean Percentage (%)", fontsize=11, fontweight="bold")
+        ax.set_ylim(0, 120)
+
+    # Configurar eixo X apenas no subplot inferior
+    axes[-1].set_xlabel("Models", fontsize=11, fontweight="bold")
+    axes[-1].set_xticks(x)
+    axes[-1].set_xticklabels(modelos, rotation=15, ha="right", fontweight="bold")
+
+    # Legenda compartilhada (pega handles do primeiro subplot para não duplicar)
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(
+        handles,
+        labels,
+        loc="upper right",
+        title="Quantization",
+        fontsize=11,
+        title_fontsize=12,
+        bbox_to_anchor=(0.99, 0.98),
+    )
+
+    plt.tight_layout(rect=[0, 0, 0.88, 1])  # espaço à direita para a legenda
+
+    nome_saida = "./grafico_combinado_pct_validos_invalidos.png"
+    plt.savefig(nome_saida, dpi=150, bbox_inches="tight")
+    print(f"Gráfico combinado salvo com sucesso: {nome_saida}")
+
+    plt.show()
+    plt.close(fig)
+
+
 if __name__ == "__main__":
     # plot_mean_com_desvio(
     #     "/home/lucas.abner/Documentos/code/gcrm/results_smiles/results_20_smiles_agregado.csv"
     # )
-    plot_porcentagem_com_desvio()
-    plot_tempo_com_desvio(
-        "/home/lucas.abner/Documentos/code/gcrm/quarta_leva_menos_moleculas/all_metrics.json"
-    )
-    plot_tokens_com_desvio(
-        "/home/lucas.abner/Documentos/code/gcrm/quarta_leva_menos_moleculas/all_metrics.json"
-    )
+    # plot_porcentagem_com_desvio()
+    plot_porcentagem_combinado()
+    # plot_tempo_com_desvio(
+    #     "/home/lucas.abner/Documentos/code/gcrm/quarta_leva_menos_moleculas/all_metrics.json"
+    # )
+    # plot_tokens_com_desvio(
+    #     "/home/lucas.abner/Documentos/code/gcrm/quarta_leva_menos_moleculas/all_metrics.json"
+    # )
