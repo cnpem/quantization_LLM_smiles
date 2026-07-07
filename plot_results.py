@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import json
 
 # 1. Carregar os dados
-df = pd.read_csv('results_smiles/results_quarta_leva_2.csv')
+df = pd.read_csv('results_smiles/results_task_2.csv')
 
 def preparar_dados(df, per_leva=False):
     # 2. Extrair o Modelo e a Quantização da coluna 'replica'
@@ -84,9 +84,10 @@ def plotar_grafico_media(leva, nome_arquivo):
             
             # Texto logo acima do topo da barra empilhada
             posicao_texto_y = altura_y + 0.3
-            ax.text(pos_x, posicao_texto_y, quant, ha="center", va="bottom", fontsize=9, fontweight='bold', rotation=60)
+            ax.text(pos_x, posicao_texto_y, quant, ha="center", va="bottom", fontsize=12, fontweight='bold', rotation=60)
 
     ax.grid(axis='y', linestyle='--', alpha=0.2)
+    ax.tick_params(axis="y", labelsize=13)
     
     # Ajuste dinâmico do teto do gráfico para a escala de médias (passos menores, ex: de 5 em 5)
     max_altura_com_erro = (df_grouped['total_smiles'] + df_grouped['total_smiles_validos_std']).max()
@@ -96,14 +97,14 @@ def plotar_grafico_media(leva, nome_arquivo):
     ax.set_yticks(np.arange(0, teto_grafico, y_step))
     ax.set_ylim(0, teto_grafico)
 
-    ax.set_xlabel('Models', fontsize=12, fontweight='bold', labelpad=10)
-    ax.set_ylabel('Mean SMILES per Replica', fontsize=12, fontweight='bold')
-    ax.set_title('SMILES Validation per Model and Quantization (Mean ± Std Dev)', fontsize=14, fontweight='bold', pad=15)
+    ax.set_xlabel('Models', fontsize=15, fontweight='bold', labelpad=10)
+    ax.set_ylabel('Mean SMILES per Replica', fontsize=15, fontweight='bold')
+    ax.set_title('SMILES Validation per Model and Quantization (Mean ± Std Dev)', fontsize=17, fontweight='bold', pad=15)
 
     ax.set_xticks(x)
-    ax.set_xticklabels(modelos, rotation=15, ha='right', fontsize=11)
+    ax.set_xticklabels(modelos, rotation=15, ha='right', fontsize=14)
 
-    ax.legend(["Unique Valid", "Duplicates", "Invalid"], bbox_to_anchor=(1.01, 1), loc='upper left')
+    ax.legend(["Unique Valid", "Duplicates", "Invalid"], bbox_to_anchor=(1.01, 1), loc='upper left', fontsize=13)
 
     plt.tight_layout()
     plt.savefig(nome_arquivo, dpi=150, bbox_inches="tight")
@@ -169,22 +170,24 @@ def plotar_grafico_por_replica(df):
 
             for pos_x, alt_y in zip(x + deslocamento, df_plot["total_smiles"]):
                 if alt_y < 110:
-                    ax.text(pos_x, alt_y + 4.5, quant, ha="center", va="bottom", fontsize=9, fontweight='bold', rotation=60)
+                    ax.text(pos_x, alt_y + 4.5, quant, ha="center", va="bottom", fontsize=12, fontweight='bold', rotation=60)
                 else:
-                    ax.text(pos_x, (alt_y * 1.7)/2, quant, ha="center", va="top", fontsize=9, fontweight='bold', rotation=60)
+                    ax.text(pos_x, (alt_y * 1.7)/2, quant, ha="center", va="top", fontsize=12, fontweight='bold', rotation=60)
             
 
         # Textos e firulas
-        ax.set_xlabel('Models', fontsize=12, fontweight='bold', labelpad=10)
-        ax.set_ylabel('SMILES Count', fontsize=12, fontweight='bold', labelpad=10)
+        ax.grid(axis='y', linestyle='--', alpha=0.2)
+        ax.tick_params(axis="y", labelsize=13)
+        ax.set_xlabel('Models', fontsize=15, fontweight='bold', labelpad=10)
+        ax.set_ylabel('SMILES Count', fontsize=15, fontweight='bold', labelpad=10)
         # ax.set_ylim(0, df_plot['total_smiles'].max() + 50)
         # O título agora reflete a réplica que estamos olhando
-        ax.set_title(f'SMILES Validation per Model and Quantization - Replica {i}', fontsize=14, fontweight='bold', pad=15)
+        ax.set_title(f'SMILES Validation per Model and Quantization - Replica {i}', fontsize=17, fontweight='bold', pad=15)
         
         ax.set_xticks(x)
-        ax.set_xticklabels(modelo, rotation=45, ha='right', fontsize=10)
+        ax.set_xticklabels(modelo, rotation=45, ha='right', fontsize=13)
         
-        ax.legend(["Valid", "Duplicates", "Invalid"], bbox_to_anchor=(1.01, 1), loc='upper left')
+        ax.legend(["Valid", "Duplicates", "Invalid"], bbox_to_anchor=(1.01, 1), loc='upper left', fontsize=13)
         
         plt.tight_layout()
         plt.savefig(f"grafico_por_replica_{i}.png", dpi=150, bbox_inches="tight")
@@ -270,7 +273,7 @@ def plotar_tempo_resposta_minutos(caminho_json, nome_arquivo_saida):
                     quant,
                     ha="center",
                     va="bottom",
-                    fontsize=10,
+                    fontsize=13,
                     fontweight="bold",
                     rotation=45,
                 )
@@ -281,7 +284,7 @@ def plotar_tempo_resposta_minutos(caminho_json, nome_arquivo_saida):
                     quant,
                     ha="center",
                     va="center",
-                    fontsize=10,
+                    fontsize=13,
                     fontweight="bold",
                     rotation=45,
                     color="white",
@@ -289,6 +292,7 @@ def plotar_tempo_resposta_minutos(caminho_json, nome_arquivo_saida):
 
     # Configuração de Grid e Escala em minutos
     ax.grid(axis="y", linestyle="--", alpha=0.2)
+    ax.tick_params(axis="y", labelsize=13)
 
     # Escala dinâmica com passos de 5 em 5 minutos
     y_step = 5
@@ -297,19 +301,19 @@ def plotar_tempo_resposta_minutos(caminho_json, nome_arquivo_saida):
     ax.set_ylim(0, teto_grafico)
 
     # Títulos e Identificações dos Eixos
-    ax.set_xlabel("Models", fontsize=12, fontweight="bold", labelpad=10)
+    ax.set_xlabel("Models", fontsize=15, fontweight="bold", labelpad=10)
     ax.set_ylabel(
-        "Mean Response Time (minutes)", fontsize=12, fontweight="bold"
+        "Mean Response Time (minutes)", fontsize=15, fontweight="bold"
     )
     ax.set_title(
         "Mean Response Time per Model and Quantization (in Minutes)",
-        fontsize=14,
+        fontsize=17,
         fontweight="bold",
         pad=15,
     )
 
     ax.set_xticks(x)
-    ax.set_xticklabels(modelos, rotation=15, ha="right", fontsize=11)
+    ax.set_xticklabels(modelos, rotation=15, ha="right", fontsize=14)
 
     # Legenda customizada
     ax.legend(
@@ -317,6 +321,8 @@ def plotar_tempo_resposta_minutos(caminho_json, nome_arquivo_saida):
         bbox_to_anchor=(1.01, 1),
         loc="upper left",
         title="Quantization",
+        fontsize=13,
+        title_fontsize=14,
     )
 
     plt.tight_layout()
@@ -408,7 +414,7 @@ def plotar_tokens_resposta_minutos(caminho_json, nome_arquivo_saida):
                     quant,
                     ha="center",
                     va="bottom",
-                    fontsize=10,
+                    fontsize=13,
                     fontweight="bold",
                     rotation=45,
                 )
@@ -419,7 +425,7 @@ def plotar_tokens_resposta_minutos(caminho_json, nome_arquivo_saida):
                     quant,
                     ha="center",
                     va="center",
-                    fontsize=10,
+                    fontsize=13,
                     fontweight="bold",
                     rotation=45,
                     color="white",
@@ -427,6 +433,7 @@ def plotar_tokens_resposta_minutos(caminho_json, nome_arquivo_saida):
 
     # Configuração de Grid e Escala em minutos
     ax.grid(axis="y", linestyle="--", alpha=0.2)
+    ax.tick_params(axis="y", labelsize=13)
 
     # Escala dinâmica com passos de 5 em 5 minutos
     y_step = 5
@@ -435,19 +442,19 @@ def plotar_tokens_resposta_minutos(caminho_json, nome_arquivo_saida):
     ax.set_ylim(0, teto_grafico)
 
     # Títulos e Identificações dos Eixos
-    ax.set_xlabel("Models", fontsize=12, fontweight="bold", labelpad=10)
+    ax.set_xlabel("Models", fontsize=15, fontweight="bold", labelpad=10)
     ax.set_ylabel(
-        "Mean Tokens per Second (tokens/s)", fontsize=12, fontweight="bold"
+        "Mean Tokens per Second (tokens/s)", fontsize=15, fontweight="bold"
     )
     ax.set_title(
         "Mean Tokens per Second per Model and Quantization",
-        fontsize=14,
+        fontsize=17,
         fontweight="bold",
         pad=15,
     )
 
     ax.set_xticks(x)
-    ax.set_xticklabels(modelos, rotation=15, ha="right", fontsize=11)
+    ax.set_xticklabels(modelos, rotation=15, ha="right", fontsize=14)
 
     # Legenda customizada
     ax.legend(
@@ -455,6 +462,8 @@ def plotar_tokens_resposta_minutos(caminho_json, nome_arquivo_saida):
         bbox_to_anchor=(1.01, 1),
         loc="upper left",
         title="Quantization",
+        fontsize=13,
+        title_fontsize=14,
     )
 
     plt.tight_layout()
@@ -463,9 +472,10 @@ def plotar_tokens_resposta_minutos(caminho_json, nome_arquivo_saida):
 
 if __name__=="__main__":
     # primeira_leva, segunda_leva = preparar_dados(df, per_leva=True)
-    quarta_leva = preparar_dados(df)
-    plotar_grafico_media(quarta_leva, 'grafico_quarta_leva_todas_q.png')
+    task_2 = preparar_dados(df)
+    plotar_grafico_media(task_2, 'grafico_task_2_todas_q.png')
+    # plotar_grafico_tokens(task_2, 'grafico_tokens_task_2_todas_q.png')
     # dale = plotar_grafico_por_replica(primeira_leva)
-    # dale = plotar_tokens_resposta_minutos("/home/lucas.abner/Documentos/code/gcrm/quarta_leva_menos_moleculas/all_metrics.json", "tokens_segundos_quarta_leva.png")
-    # dale = plotar_tempo_resposta_minutos("/home/lucas.abner/Documentos/code/gcrm/quarta_leva_menos_moleculas/all_metrics.json", "tempo_resposta_min_quarta_leva.png")
+    dale = plotar_tokens_resposta_minutos("/home/lucas.abner/Documentos/code/gcrm/teste2_task_2/all_metrics.json", "tokens_segundos_quarta_leva.png")
+    dale = plotar_tempo_resposta_minutos("/home/lucas.abner/Documentos/code/gcrm/teste2_task_2/all_metrics.json", "tempo_resposta_min_quarta_leva.png")
     # print(dale)

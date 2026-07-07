@@ -39,10 +39,10 @@ def split_smiles(csv_smiles, nome_leva):
 
     arquivo_split = csv_smiles.split("/")
 
-    novo_df = pd.DataFrame({"leva": [nome_leva], "replica": [arquivo_split[2].replace(".csv", "")], "total_smiles":[len(lst_smiles)], "total_smiles_validos": [len(lst_valid_smiles)], "total_smiles_duplicados": [smiles_duplicados]})
+    novo_df = pd.DataFrame({"task": [task_name], "replica": [arquivo_split[2].replace(".csv", "")], "total_smiles":[len(lst_smiles)], "total_smiles_validos": [len(lst_valid_smiles)], "total_smiles_duplicados": [smiles_duplicados]})
 
     caminho_results = "./results_smiles"
-    caminho_arquivo_csv = f"{caminho_results}/results_quarta_leva.csv"
+    caminho_arquivo_csv = f"{caminho_results}/results_{nome_leva}_agregado.csv"
     arquivo_existe = os.path.isfile(caminho_arquivo_csv)
 
     # mode='a' faz o append, adicionando a linha no final
@@ -50,7 +50,7 @@ def split_smiles(csv_smiles, nome_leva):
 
     return "Deu certo"
 
-def split_total(csv_smiles="", metricas="", nome_leva=""):
+def split_total(csv_smiles="", metricas="", task_name=""):
     # 1. Carregar o log completo de métricas (JSON)
     with open(metricas, "r", encoding="utf-8") as f:
         df_metricas = json.load(f)
@@ -102,7 +102,7 @@ def split_total(csv_smiles="", metricas="", nome_leva=""):
 
     novo_df = pd.DataFrame(
         {
-            "leva": [nome_leva],
+            "task": [task_name],
             "modelo": [modelo_base],
             "quantizacao": [quantizacao],
             "replica": [arquivo_nome.replace(".csv", "")],
@@ -127,7 +127,7 @@ def split_total(csv_smiles="", metricas="", nome_leva=""):
     # 8. Salvar fazendo Append (adicionando como nova linha)
     caminho_results = "./results_smiles"
     os.makedirs(caminho_results, exist_ok=True)  # Garante que a pasta existe
-    caminho_arquivo_csv = f"{caminho_results}/results_{nome_leva}_2.csv"
+    caminho_arquivo_csv = f"{caminho_results}/results_{task_name}.csv"
     arquivo_existe = os.path.isfile(caminho_arquivo_csv)
 
     novo_df.to_csv(
@@ -144,37 +144,30 @@ if __name__=="__main__":
     for pasta in os.listdir("./"):
         caminho_pasta = os.path.join("./", pasta)
         
-        if os.path.isdir(caminho_pasta) and pasta.startswith("csv_llms_quarta_leva"):
+        if os.path.isdir(caminho_pasta) and pasta.startswith("csv_llms_task_2"):
 
             nome_leva = pasta.replace("csv_llms_", "")
 
             for csv in os.listdir(caminho_pasta):
                 caminho_final = os.path.join(caminho_pasta, csv)
                 print(caminho_final)
-                dale = split_total(csv_smiles=caminho_final, metricas="/home/lucas.abner/Documentos/code/gcrm/quarta_leva_menos_moleculas/all_metrics.json",nome_leva=nome_leva)
+                dale = split_total(csv_smiles=caminho_final, metricas="/home/lucas.abner/Documentos/code/gcrm/teste2_task_2/all_metrics.json",task_name="task_2")
                 print(dale)
-    df = pd.read_csv('/home/lucas.abner/Documentos/code/gcrm/results_smiles/results_quarta_leva_2.csv')
+    df = pd.read_csv('/home/lucas.abner/Documentos/code/gcrm/results_smiles/results_task_2.csv')
     df_grouped = df.groupby(['modelo', 'quantizacao'])[['total_smiles', 'total_smiles_validos', 'total_smiles_duplicados']].sum().reset_index()
     df_group_duration = df.groupby(["modelo", "quantizacao"])[["token_per_second_medio", "duration_min_media"]].mean().reset_index()
-
-
-    # df_total = pd.merge(
-    #     df, df_grouped, on=["modelo", "quantizacao"]
-    # )
 
     df_total = pd.merge(
         df_grouped, df_group_duration, on=["modelo", "quantizacao"]
     )
 
-    # print(df_total)
-
-    df_total["% smiles validos"] = df_total.apply(lambda row: (row["total_smiles_validos"]/row["total_smiles"]) * 100, axis=1)
+    df_total["% smiles validos"] = (df_total["total_smiles_validos"] / df_total["total_smiles"]) * 100
 
     print(df_total)
 
     caminho_results = "./results_smiles"
     os.makedirs(caminho_results, exist_ok=True)  # Garante que a pasta existe
-    caminho_arquivo_csv = f"{caminho_results}/results_{nome_leva}_3.csv"
+    caminho_arquivo_csv = f"{caminho_results}/results_task_2_agregado.csv"
     arquivo_existe = os.path.isfile(caminho_arquivo_csv)
 
     df_total.to_csv(

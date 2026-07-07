@@ -5,8 +5,8 @@ import os
 
 # arquivo_txt = "gemma-4-26B-BF16_replica_1.txt"
 # arquivo_csv = f"{Path(__file__).parent}/gemma-4-26B-BF16_replica_1.csv"
-pasta_txt = Path(__file__).parent/"quarta_leva_menos_moleculas"
-pasta_csv = Path(__file__).parent/"csv_llms_quarta_leva"
+pasta_txt = Path(__file__).parent/"teste2_primeira_leva"
+pasta_csv = Path(__file__).parent/"csv_llms_teste_2"
 
 pasta_csv.mkdir(exist_ok=True)
 
