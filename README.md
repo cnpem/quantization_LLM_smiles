@@ -5,11 +5,16 @@ This code supports the reproducibility of results presented in our paper.
 
 ## Quick Start
 
+The complete scientific reproduction requires two steps: Data Collection (calling the LLMs) and Analysis (validating SMILES and generating plots). All configurations for both scripts are centralized in `config.py`.
+
 ```bash
 # 1. Install dependencies
 uv sync
 
-# 2. Run the full pipeline (validation + CSV generation + plots)
+# 2. Collect Data (Generates the raw .txt outputs and metrics)
+uv run python prompts.py
+
+# 3. Run Analysis Pipeline (Validation + CSV generation + Plots)
 uv run python run_pipeline.py
 ```
 

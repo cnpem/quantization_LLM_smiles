@@ -1,168 +1,70 @@
 import requests 
 import json
 import os
-import subprocess
-
+import argparse
+import config
 
 def chamada_llm(message, model_id):
     messages = [{"role": "user", "content": message}]
-    url = "http://10.30.4.153:8082/v1/chat/completions"
     headers = {"Content-Type": "application/json"}
     payload = {"model": model_id, "messages": messages, "stream": False}
 
-
-    response = requests.post(url=url, headers=headers, json=payload)
+    response = requests.post(url=config.API_URL, headers=headers, json=payload)
     response.raise_for_status()
 
     data = response.json()
     return data["choices"][0]["message"]["content"]
 
-def teste_llms(prompt: str, list_models: list):
-    leva = "./teste2_primeira_leva"
-    os.makedirs(leva, exist_ok=True)
+def teste_llms(task_name: str, prompt: str, list_models: list, output_dir: str):
+    os.makedirs(output_dir, exist_ok=True)
     
-    arquivo_metricas = f"{leva}/all_metrics.json"
+    arquivo_metricas = os.path.join(output_dir, "all_metrics.json")
 
     for model_id in list_models:
-        for i in range(25):
-            nome_completo = f"{leva}/{model_id}_replica_{i+1}.txt"
+        for i in range(config.N_REPLICAS):
+            nome_completo = os.path.join(output_dir, f"{model_id}_replica_{i+1}.txt")
+            
             try:
                 content = chamada_llm(prompt, model_id)
                 with open(nome_completo, "w", encoding="utf-8") as f:
                     f.write(content)
                 
-                print(f"✅ {model_id} replica {i+1}")
+                print(f"✅ [{task_name}] {model_id} replica {i+1}")
                 
-                metrics_response = requests.get("http://10.30.4.153:8082/api/metrics")
+                metrics_response = requests.get(config.API_METRICS_URL)
                 metrics_response.raise_for_status()
                 metrics_model = metrics_response.json()
 
                 with open(arquivo_metricas, "w", encoding="utf-8") as f:
                     json.dump(metrics_model, f, indent=4)
 
-                print(f"Métricas salvas")
+                print(f"   Métricas salvas.")
                 
             except Exception as e:
-                print(f"[ERRO] {model_id} replica {i+1}: {e}")
+                print(f"❌ [ERRO] {model_id} replica {i+1}: {e}")
 
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Coletar dados das LLMs (Geração de txts)")
+    parser.add_argument("--task", type=str, help="Executar apenas uma task especifica (ex: task_1)")
+    args = parser.parse_args()
 
+    print("==================================================")
+    print("  GCRM - Coleta de Dados via API LLM")
+    print("==================================================")
+    print(f"Réplicas configuradas: {config.N_REPLICAS}")
+    print(f"Modelos configurados:  {len(config.MODELS)}")
+    print(f"API configurada:       {config.API_URL}")
+    print("==================================================\n")
 
-
-if __name__=="__main__":
-    # models = ["Qwen3.6-35B-BF16", "gemma-4-26B-Q8", "gemma-4-31B-Q8", "Qwen3.6-35B-Q8", "gemma-4-26B-Q6", "gemma-4-31B-Q6", "Qwen3.6-27B-Q6", "Qwen3.6-35B-Q6", "Ministral3-14B-BF16", "Ministral3-14B-Q8", "Ministral3-14B-Q6", "Magistral1.2-24B-B16", "Magistral1.2-24B-Q8", "Magistral1.2-24B-Q6", "Qwen3.6-27B-BF16",  "Qwen3.6-27B-Q8"]
-
-    # models = ["gemma-4-31B-Q8", "Qwen3.6-35B-Q8", "gemma-4-26B-Q6", "gemma-4-31B-Q6", "Qwen3.6-27B-Q6", "Qwen3.6-35B-Q6", "Ministral3-14B-BF16", "Ministral3-14B-Q8", "Ministral3-14B-Q6", "Magistral1.2-24B-B16", "Magistral1.2-24B-Q8", "Magistral1.2-24B-Q6", "Qwen3.6-27B-BF16",  "Qwen3.6-27B-Q8"]
-
-    models = [
-        "gpt-oss-120B-BF16",
-        "gpt-oss-120B-Q8",
-        "gpt-oss-120B-Q6",
-        "gpt-oss-120B-Q4",
-        "gemma-4-31B-BF16",
-        "gemma-4-31B-Q8",
-        "gemma-4-31B-Q6",
-        "gemma-4-31B-Q4",
-        "Qwen3.6-35B-BF16",
-        "Qwen3.6-35B-Q8",
-        "Qwen3.6-35B-Q6",
-        "Qwen3.6-35B-Q4",
-        'Mistral4-119B-Q4',
-        'Mistral4-119B-Q6',
-        'Mistral4-119B-Q8',
-        'Mistral4-119B-BF16',
-    ]
-
-    # models = [
-    #     # 'phi-4-14B-BF16',
-    #     # 'phi-4-14B-Q8',
-    #     # 'phi-4-14B-Q6',
-    #     # 'phi-4-14B-Q4',
-    #     # 'Mistral4-119B-Q4',
-    #     # 'Mistral4-119B-Q6',
-    #     # 'Mistral4-119B-Q8',
-    #     # 'Mistral4-119B-BF16',
-    # ]
-
-    prompt1 = """
-    You are a medicinal chemist. Please generate 20 different molecules. Please make sure to adhere to the following output format restrictions: 1. Report only the SMILES of the molecules in your final answer; 2. Report one SMILES per line and nothing else.
-    """
-
-#     prompt2 = """
-# You are a medicinal chemist. Please generate 20 different drug-like molecules based on the SMILES of the reference molecules that are listed at the end of this message. Please make sure to adhere to the following output format restrictions: 1. In your final answer, report only the SMILES of the molecules in your final answer; 2. Report one SMILES per line and nothing else; 3. Don’t include explanations nor introductions in your final answer.
- 
-# Here are the SMILES of the reference molecules. There is one SMILES per line:
- 
-# O=S(C1=CC=CC(NC2=NC(NC3=CC=C(C=C3)OCCN4CCCC4)=NC=C2C)=C1)(NC(C)(C)C)=O
-# O=C(C1=CC=C(C(OC)=C1)NC2=NC=C(N(C3=O)C)C(N([C@@H]3CC)C(C)C)=N2)N[C@H]4CC[C@@H](CC4)N5CCN(CC5)CC6CC6
-# OCCOC1=CC2=C(N=CN=C2NC3=CC=CC(C#C)=C3)C=C1OCCOC
-# O=C(NC1=C(C=C2C(C(NC3=CC=C(C(Cl)=C3)F)=NC=N2)=C1)OCCCN4CCOCC4)C=C
-# O=C(C1=C(C)N(CC(C)(O)C)N(C2=CC=CC=C2)C1=O)NC3=NC=C(OC4=CC=NC5=CC(OC)=CC=C45)C=C3
-# O=C(NC1=CC=C(C=C1F)OC2=CC(NC(N3CCC(CC3)N4CCN(CC4)C)=O)=NC=C2)C5(CC5)C(NC6=CC=C(C=C6)F)=O
-# N#CC1=C(C2=CC(NC(/C=C/CN(C)C)=O)=C(OCC)C=C2N=C1)NC3=CC(Cl)=C(C=C3)F
-# O=C(NC1=C(C=C2C(C(NC3=CC(Cl)=C(C=C3)F)=NC=N2)=C1)O[C@H]4CCOC4)/C=C/CN(C)C
-# ClC1=C(C=CC(NC2=NC=NC3=C2C=C(C(OC)=C3)OCCCN4CCOCC4)=C1)F
-# O/N=C1CCC2=CC(C3=C(NC(C4=CC=C(C=C4)OCCN(C)C)=N3)C5=CC=NC=C5)=CC=C/12
-# FC(C(Cl)=CC=C1)=C1O[C@H](CC2)CC[C@@]2(C(O)=O)CC3=CC=CC(NC4=NC=CS4)=N3
-# O=S(C1=CC=CC(NC2=NC(NC3=CC=C(C=C3)N4CCN(CC4)C)=NC=C2C)=C1)(NC(C)(C)C)=O
-# CN1CCN(C2=CC=C(C=C2)NC3=NC=C(C(OC4=CC(NC(C=C)=O)=CC=C4)=N3)Cl)CC1
-# O=C(/C=C/CN1CCCCC1)NC2=CC3=C(C=C2OC)N=CN=C3NC4=CC=C(C(Cl)=C4)F
-# CS(=O)(N(C)C1=NC=CC=C1CNC2=NC(NC3=CC4=C(C=C3)NC(C4)=O)=NC=C2C(F)(F)F)=O
-# CN1CCN(C2=CC=C(C=C2)NC3=NC=C(C(SC4=CC(NC(C=C)=O)=CC=C4)=N3)Cl)CC1
-# O=C(C1=C(C=CC=C1)NC2=NC(NC3=C(C=C(C=C3)N4CCOCC4)OC)=NC=C2Cl)NC
-# NC1=C2C(N(C=C2C3=CC=CC(OCC4=CC=CC=C4)=C3)[C@H]5C[C@@H](C5)CN6CCCC6)=NC=N1
-# O=C1[C@H](N(C2=C(N1C)C=NC(NC3=CC=C(C(NC4CCN(C)CC4)=O)C=C3OC)=N2)C5CCCC5)CC
-# CC1=CC(NC2=NC(SC3=CC=C(C=C3)NC(C4CC4)=O)=NC(N5CCN(CC5)C)=C2)=NN1
-# O=C(CN1CCC(OC2=CC3=C(NC4=CC=CC(Cl)=C4F)N=CN=C3C=C2OC)CC1)NC
-# C[C@H](C1=CC=CC=C1)NC2=C(C=C3C(C=C4)=CC=C4CN5CCN(CC)CC5)C(N3)=NC=N2
-# FC1=CC=CC(COC2=C(Cl)C=C(NC3=NC=NC4=C3C=C(NC(C=C)=O)C=C4)C=C2)=C1
-# O=C1NC2=CC(C(OC)=O)=CC=C2/C1=C(NC3=CC=C(N(C(CN4CCN(C)CC4)=O)C)C=C3)\C5=CC=CC=C5
-# O=C(NC1=CN2C(C(NC3=CC4=C(N(CC5=CC=CC(F)=C5)N=C4)C=C3)=NC=N2)=C1C)OC[C@H]6NCCOC6
-# O=C(C1=CN=C(S1)NC2=NC(C)=NC(N3CCN(CC3)CCO)=C2)NC4=C(C=CC=C4Cl)C
-# OCCO[C@@H]1CC[C@@H](N2C(N=C(N)N=C3C)=C3C=C(C4=CC=C(OC)N=C4)C2=O)CC1
-# O=C(NC1=CC=C(C=C1Cl)OC2=CC=NC3=CC(OC)=C(C=C23)OC)NC4=NOC(C)=C4
-# COC1=NC=C(C=C1NS(C2=CC=C(C=C2F)F)(=O)=O)C3=CC=C(C4=C3)N=CC=C4C5=CN=NC=C5
-# O=C(N)C1=C(C=C2N=CC=C(C2=C1)OC3=CC=C(C(Cl)=C3)NC(NC4CC4)=O)OC
-# CC1=NNC(NC2=NN3C(C(CN4CCOCC4)=C2)=NC(C)=C3CC5=CC=C(C=C5F)Cl)=C1
-# COC1=CC2=C(C=CN=C2C=C1OC)OC3=CC=C(C(F)=C3)NC(NC4=CC=C(C=C4F)F)=O
-# C[C@H]1N=C(NC2=CC3=C(NC4=CC=C(OCC5=NC=CS5)C(Cl)=C4)N=CN=C3C=C2)OC1
-# ClC1=CC=C([C@@H](CNC(C)C)C(N2CCN(C3=C([C@H](C)C[C@H]4O)C4=NC=N3)CC2)=O)C=C1
-# O=C(NC1=CC=CC(Cl)=C1)NC2=NC=C(S2)CCNC3=C4C(C=CS4)=NC=N3.OS(C)(=O)=O
-# O=C(CNC(C)=O)N1[C@@H]2C3=C(C=C(NC4=NC(NC5CCC5)=C(C(F)(F)F)C=N4)C=C3)[C@H]1CC2
-# O=C(NC1CC1)NC2=CNN=C2C3=NC4=CC=C(C=C4N3)CN5CCOCC5
-# O=C(C1=C(SC2=CC3=C(C(/C=C/C4=CC=CC=N4)=NN3)C=C2)C=CC=C1)NC
-# CC1=CC=C(C=C1S(N)(=O)=O)NC2=NC=CC(N(C3=CC4=NN(C(C)=C4C=C3)C)C)=N2.Cl
-# ClC1=C(OC2=CC=C(NC(C3=CNC=C(C4=CC=C(F)C=C4)C3=O)=O)C=C2F)C=CN=C1N
-# N#CC1=CC(F)=C(NC2=NNC(C)=C2)N=C1N[C@H](C3=CC=C(F)C=C3)C
-# FC1=C(CN2CCOCC2)C(F)=CC(C3=C4N=C(C5=CN(C6CCNCC6)N=C5)C=NC4=CC=C3)=C1
-# N#CCC1(N2N=CC(C3=C4C(NC=C4)=NC=N3)=C2)CN(S(=O)(CC)=O)C1
-# O=S(C1=CC=C(C2=CC=CN3C2=NC(NC4=CC=CC(N5CCN(C)CC5)=C4)=N3)C=C1)(C)=O
-# BrC(C=C1)=CN2C1=NC=C2/C=N/N(S(=O)(C3=C(C=CC([N+]([O-])=O)=C3)C)=O)C.[H]Cl
-# O=C(NC1CCN(CC1)C)C2=C(C3=C(C4=CC(C)=CN=C4N3)C(C5=CC=CC(S(=O)(CC)=O)=C5)=C2)C
-# C[C@@H](C(N1CCN(CC1)CC2=C(C3=NC(C4=CN=C(N=C4)N)=NC(N5CCOCC5)=C3S2)C)=O)O
-# C=CC(N1C[C@H](N2N=C(C3=CC=C(OC4=CC=CC=C4)C=C3)C5=C(N)N=CN=C52)CCC1)=O
-# CC(O)(C)C#CC1=NC=C(OC[C@@H]2CNCCC2)C3=C1N=C(C4=NON=C4N)N3CC
-# ClC1=C(F)C=CC(Cl)=C1[C@H](OC2=CC(C3=CN(N=C3)C4CCNCC4)=CN=C2N)C
-# COC1=CC=C2C(OCC3=NN=C4N3N=C(C=C4)C5=CC=CC=C5)=CC=NC2=C1
-# OCCN1N=CC(C2=NC3=C(N=C2)N=NN3CC4=CC5=CC=CN=C5C=C4)=C1
-# N#CC[C@H](C1CCCC1)N2N=CC(C3=C4C=CNC4=NC=N3)=C2
-# COC1=CC2=NC=NC(NC3=CC=CC(Cl)=C3)=C2C=C1OC
-# CC1=C(C=C(C=C1)C(NC2=CC(C(F)(F)F)=C(C=C2)CN3CCN(CC3)C)=O)C#CC4=CN=C5N4N=CC=C5
-# COC1=C(C=C(C2=C1)N=CN=C2NC3=CC(Br)=CC=C3)OC.Cl
-# O=C(C1=CC=C(NC2=NC3=C(CN=C(C4=C3C=CC(Cl)=C4)C5=C(F)C=CC=C5F)C=N2)C=C1)O
-# O=C(NC)C1=CC=C(C2=NN3C(N=C2)=NC=C3CC4=CC=C5N=CC=CC5=C4)C=C1F
-# O=C1C([C@@](CC2)([H])[C@@]3(C)C2=O)=C([C@H](OC(C)=O)C3)[C@]4(C)C5=C1OC=C5C(O[C@@H]4COC)=O
-# ClC1=CC2=C(NC(C(C3=NC4=C(C=CC=C4)N3)=C2N[C@@H]5CN6CCC5CC6)=O)C=C1
-# O[C@@]1(C)C[C@@H](C2=NC(C3=CC=C4C=CC(C5=CC=CC=C5)=NC4=C3)=C6C(N)=NC=CN62)C1
-# CN1N=CC(C2=NN3C(SC4=CC5=C(N=CC=C5)C=C4)=NN=C3C=C2)=C1
-# O=C(NC1=NC2=C(C3=NCCN13)C=CC(OC)=C2OC)C4=CC=CN=C4
-# O=C(NC1=CC=C(C2=C3C(N)=NNC3=CC=C2)C=C1)NC4=C(C=CC(C)=C4)F
-# NC1=C2C(C3=CC4=C(N=C3)NC=C4)=NN(C2=NC=N1)C5CCCC5
-# CC(C)(C1=NC(C2=CC=CC(C)=N2)=C(C3=CC=C4N=CC=NC4=C3)N1)C
-# OC1=CC(C2=NC3=C(C(N4CCOCC4)=N2)OC5=C3C=CC=N5)=CC=C1
-# O=C1C2=C(C=C(C([C@]3([H])[C@H](O)CN(C)CC3)=C2OC(C4=CC=CC=C4Cl)=C1)O)O.[H]Cl
-# O=C(NC1)C2=C1C3=C(C4=C2C5=C(C=CC=C5)N4[C@H]6C[C@@H](NC)[C@@H](OC)[C@]7(C)O6)N7C8=CC=CC=C83
-#     """
-
-    dale = teste_llms(prompt1, models)
-
-    print(dale)
+    for t_name, t_config in config.TASKS.items():
+        if args.task and t_name != args.task:
+            continue
+            
+        print(f"Iniciando coleta para: {t_name}...")
+        teste_llms(
+            task_name=t_name,
+            prompt=t_config["prompt"],
+            list_models=config.MODELS,
+            output_dir=str(t_config["raw_dir"])
+        )
+        print(f"--- Coleta de {t_name} finalizada! ---\n")
