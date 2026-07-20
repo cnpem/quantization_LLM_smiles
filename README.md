@@ -1,4 +1,4 @@
-# GCRM — Generative Chemistry Reproducibility Module
+# Effect of quantization on LLMs capacity to generation molecule
 
 Pipeline for evaluating LLM performance on chemical SMILES generation tasks.
 This code supports the reproducibility of results presented in our paper.
