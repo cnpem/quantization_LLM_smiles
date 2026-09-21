@@ -1,0 +1,68 @@
+Bootstrap: docker
+From: nvidia/cuda:12.2.2-cudnn8-devel-ubuntu22.04
+
+%labels
+    Author gabriel.totene@lnbio.cnpem.br
+    Version 1.0.0
+    Tools llama.cpp version b9596, llama-swap
+    Description "Singularity image with CUDA support version 12.2.2 for llama.cpp and llama.swap run in a same job"
+
+
+
+%post
+    # Update packages and install basic utils
+    apt-get update && apt-get install -y \
+        git wget curl cmake vim build-essential \
+        libcurl4-openssl-dev \
+        libssl-dev \
+        && apt-get clean
+
+       # Install go
+    wget https://go.dev/dl/go1.24.3.linux-amd64.tar.gz
+    rm -rf /usr/local/go
+    tar -C /usr/local -xzf go1.24.3.linux-amd64.tar.gz
+    rm go1.24.3.linux-amd64.tar.gz
+    export PATH=$PATH:/usr/local/go/bin
+    go version
+
+    # Install Node.js 20 by nodesource (sem nvm)
+    curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
+    apt-get install -y nodejs
+    node --version
+
+
+    # Add stub of libcuda on build
+    echo "/usr/local/cuda/lib64/stubs" >> /etc/ld.so.conf.d/cuda-stubs.conf
+    ldconfig
+
+    # Build and compile llama-swap
+    cd /
+    git clone https://github.com/mostlygeek/llama-swap.git
+    cd ./llama-swap
+    make clean all
+    cp ./build/llama-swap-linux-amd64 /usr/local/bin/llama-swap
+    chmod +x /usr/local/bin/llama-swap
+
+    # Build and compile llama.cpp
+    cd /
+    git clone https://github.com/ggml-org/llama.cpp 
+    cd ./llama.cpp
+    git checkout b9596
+    cmake -B build -DGGML_CUDA=ON -DCMAKE_CUDA_ARCHITECTURES="75;80;86;89" -DLLAMA_OPENSSL=ON
+    cmake --build build --config Release -j 10
+    cp ./build/bin/llama-server /usr/local/bin
+    chmod +x /usr/local/bin/llama-server
+
+    
+
+    # Remove stub after build
+    rm /etc/ld.so.conf.d/cuda-stubs.conf
+    ldconfig
+
+%environment
+    export PATH=/usr/local/bin:$PATH
+
+
+%runscript
+    echo "Executando llama.cpp..."
+    exec "$@"
