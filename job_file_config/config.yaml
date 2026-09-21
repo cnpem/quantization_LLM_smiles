@@ -1,0 +1,84 @@
+healthCheckTimeout: 3600
+
+models:
+  Qwen3.6-35B-Q6:
+    cmd: llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/unsloth_Qwen3.6-35B-A3B-GGUF_Qwen3.6-35B-A3B-UD-Q6_K_XL.gguf --ctx-size 65000 --cache-type-k q8_0 --cache-type-v q8_0 --flash-attn "on" --mlock --batch-size 4096 --ubatch-size 1024 --n-gpu-layers -1 --parallel 1 --temp 1.0 --top-k 20 --top-p 0.95 --min-p 0.0 --repeat-penalty 1.0 --presence-penalty 1.5
+
+  gemma-4-31B-Q6:
+    cmd: llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/unsloth_gemma-4-31B-it-GGUF_gemma-4-31B-it-UD-Q6_K_XL.gguf --ctx-size 65000 --cache-type-k q8_0 --cache-type-v q8_0 --n-cpu-moe 0 --flash-attn "on" --mlock --batch-size 4096 --ubatch-size 1024 --n-gpu-layers -1 --parallel 1 --temp 1.0 --top-k 64 --top-p 0.95 --min-p 0.05 --repeat-penalty 1.0 --presence-penalty 1.0
+  
+  Qwen3.6-35B-Q8:
+    cmd: llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/Qwen3.6-35B-A3B-UD-Q8_K_XL.gguf --ctx-size 65000 --cache-type-k q8_0 --cache-type-v q8_0 --flash-attn "on" --mlock --batch-size 4096 --ubatch-size 1024 --n-gpu-layers -1 --parallel 1 --temp 1.0 --top-k 20 --top-p 0.95 --min-p 0.0 --repeat-penalty 1.0 --presence-penalty 1.5
+  
+  gemma-4-31B-Q8:
+    cmd: llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/unsloth_gemma-4-31B-it-GGUF_gemma-4-31B-it-UD-Q8_K_XL.gguf --ctx-size 65000 --cache-type-k q8_0 --cache-type-v q8_0 --n-cpu-moe 0 --flash-attn "on" --mlock --batch-size 4096 --ubatch-size 1024 --n-gpu-layers -1 --parallel 1 --temp 0.7 --top-k 40 --top-p 0.9 --min-p 0.05 --repeat-penalty 1.15 --presence-penalty 0.1
+    
+  Qwen3.6-35B-BF16:
+    cmd: llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/unsloth_Qwen3.6-35B-A3B-GGUF_BF16_Qwen3.6-35B-A3B-BF16-00001-of-00002.gguf --ctx-size 65000 --cache-type-k bf16 --cache-type-v bf16 --flash-attn 'on' --mlock --batch-size 4096 --ubatch-size 1024 --n-gpu-layers -1 --n-cpu-moe 0 --parallel 1 --temp 1.0 --top-k 20 --top-p 0.95 --min-p 0.0 --repeat-penalty 1.0 --presence-penalty 1.5
+
+  gemma-4-31B-BF16:
+    cmd: llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/unsloth_gemma-4-31B-it-GGUF_BF16_gemma-4-31B-it-BF16-00001-of-00002.gguf --ctx-size 65000 --cache-type-k bf16 --cache-type-v bf16 --n-gpu-layers -1 --flash-attn 'on' --mlock --batch-size 4096 --ubatch-size 1024 --parallel 1 --temp 0.7 --top-k 40 --top-p 0.9 --min-p 0.05 --repeat-penalty 1.15 --presence-penalty 0.1
+
+  gemma-4-31B-Q4:
+    cmd: llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/gemma-4-31B-it-UD-Q4_K_XL.gguf  --ctx-size 65000 --cache-type-k q4_0 --cache-type-v q4_0 --n-gpu-layers -1 --flash-attn 'on' --mlock --batch-size 4096 --ubatch-size 1024 --parallel 1 --temp 0.7 --top-k 40 --top-p 0.9 --min-p 0.05 --repeat-penalty 1.15 --presence-penalty 0.1
+
+  Qwen3.6-35B-Q4:
+    cmd: llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/Qwen3.6-35B-A3B-UD-Q4_K_XL.gguf --ctx-size 65000 --cache-type-k q4_0 --cache-type-v q4_0 --flash-attn 'on' --mlock --batch-size 4096 --ubatch-size 1024 --n-gpu-layers -1 --n-cpu-moe 0 --parallel 1 --temp 1.0 --top-k 20 --top-p 0.95 --min-p 0.0 --repeat-penalty 1.0 --presence-penalty 1.5
+
+  Mistral3.2-24B-BF16: 
+    cmd: llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/unsloth_Mistral-Small-3.2-24B-Instruct-2506-GGUF_Mistral-Small-3.2-24B-Instruct-2506-BF16.gguf --ctx-size 65000  --cache-type-k bf16  --cache-type-v bf16  --flash-attn 'on'  --mlock  --batch-size 4096  --ubatch-size 1024  --n-gpu-layers -1 --temp 0.8 --top-p 0.95 --top-k 40 --min-p 0.05 --repeat-penalty 1.0 --presence-penalty 0.0
+
+  Mistral3.2-24B-Q6:
+    cmd: llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/unsloth_Mistral-Small-3.2-24B-Instruct-2506-GGUF_Mistral-Small-3.2-24B-Instruct-2506-UD-Q6_K_XL.gguf --ctx-size 65000  --cache-type-k q8_0  --cache-type-v q8_0  --flash-attn 'on'  --mlock  --batch-size 4096  --ubatch-size 1024  --n-gpu-layers -1 --temp 0.8 --top-p 0.95 --top-k 40 --min-p 0.05 --repeat-penalty 1.0 --presence-penalty 0.0
+
+  Mistral3.2-24B-Q8:
+    cmd: llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/Mistral-Small-3.2-24B-Instruct-2506-UD-Q8_K_XL.gguf --ctx-size 65000  --cache-type-k q8_0  --cache-type-v q8_0  --flash-attn 'on'  --mlock  --batch-size 4096  --ubatch-size 1024  --n-gpu-layers -1 --temp 0.8 --top-p 0.95 --top-k 40 --min-p 0.05 --repeat-penalty 1.0 --presence-penalty 0.0
+  
+  gpt-oss-120B-BF16:
+    cmd: |
+      llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/unsloth_gpt-oss-120b-GGUF_gpt-oss-120b-F16.gguf --ctx-size 65000 --chat-template-kwargs '{"reasoning_effort": "high"}' --cache-type-k bf16 --cache-type-v bf16 --flash-attn 'on' --mlock --batch-size 4096 --ubatch-size 1024 --n-gpu-layers -1 --temp 1.0 --top-p 1.0 --top-k 0 
+
+  gpt-oss-120B-Q6:
+    cmd: |
+      llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/unsloth_gpt-oss-120b-GGUF_UD-Q6_K_XL_gpt-oss-120b-UD-Q6_K_XL-00001-of-00002.gguf --ctx-size 65000 --chat-template-kwargs '{"reasoning_effort": "high"}' --cache-type-k q8_0 --cache-type-v q8_0 --flash-attn 'on' --mlock --batch-size 4096 --ubatch-size 1024 --temp 1.0 --top-p 1.0 --top-k 0
+
+  gpt-oss-120B-Q8:
+    cmd: |
+      llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/gpt-oss-120b-UD-Q8_K_XL-00001-of-00002.gguf --ctx-size 65000 --chat-template-kwargs '{"reasoning_effort": "high"}' --cache-type-k q8_0 --cache-type-v q8_0 --flash-attn 'on' --mlock --batch-size 4096 --ubatch-size 1024 --temp 1.0 --top-p 1.0 --top-k 0
+
+  gpt-oss-120B-Q4:
+    cmd: |
+      llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/gpt-oss-120b-UD-Q4_K_XL-00001-of-00002.gguf --ctx-size 65000 --chat-template-kwargs '{"reasoning_effort": "high"}' --cache-type-k q4_0 --cache-type-v q4_0 --flash-attn 'on' --mlock --batch-size 4096 --ubatch-size 1024 --temp 1.0 --top-p 1.0 --top-k 0
+
+  phi-4-14B-Q6:
+    cmd:
+      llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/unsloth_Phi-4-reasoning-plus-GGUF_Phi-4-reasoning-plus-UD-Q6_K_XL.gguf --jinja --chat-template-file /shared/groups/gcrm/phi4-reasoning.jinja --ctx-size 65000 --cache-type-k q8_0 --cache-type-v q8_0 --n-cpu-moe 0 --flash-attn "on" --mlock --batch-size 2048 --ubatch-size 1024 --parallel 1 --temp 0.8 --top-p 0.95 --top-k 50 --n-gpu-layers -1 
+
+  phi-4-14B-BF16:
+    cmd:
+      llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/phi-4-reasoning-BF16.gguf --ctx-size 65000 --jinja --reasoning-format deepseek --chat-template-file /shared/groups/gcrm/phi4-reasoning.jinja --cache-type-k bf16 --cache-type-v bf16 --n-cpu-moe 0 --flash-attn "on" --mlock --batch-size 2048 --ubatch-size 1024 --parallel 1 --temp 0.8 --top-p 0.95 --top-k 50 --n-gpu-layers -1
+
+  phi-4-14B-Q8:
+    cmd:
+      llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/Phi-4-reasoning-plus-UD-Q8_K_XL.gguf --jinja --chat-template-file /shared/groups/gcrm/phi4-reasoning.jinja  --ctx-size 65000 --cache-type-k q8_0 --cache-type-v q8_0 --n-cpu-moe 0 --flash-attn "on" --mlock --batch-size 2048 --ubatch-size 1024 --parallel 1 --temp 0.8 --top-p 0.95 --top-k 50 --n-gpu-layers -1
+
+  phi-4-14B-Q4:
+    cmd:
+      llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/Phi-4-reasoning-plus-UD-Q4_K_XL.gguf --jinja --chat-template-file /shared/groups/gcrm/phi4-reasoning.jinja --ctx-size 65000 --cache-type-k q4_0 --cache-type-v q4_0 --n-cpu-moe 0 --flash-attn "on" --mlock --batch-size 2048 --ubatch-size 1024 --parallel 1 --temp 0.8 --top-p 0.95 --top-k 50 --n-gpu-layers -1
+
+  Mistral4-119B-BF16:
+    cmd: |
+      llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/unsloth_Mistral-Small-4-119B-2603-GGUF_BF16_Mistral-Small-4-119B-2603-BF16-00001-of-00006.gguf --ctx-size 65000 --cache-type-k bf16 --cache-type-v bf16  --flash-attn 'on'  --mlock  --batch-size 4096 --ubatch-size 1024 --parallel 1 --chat-template-kwargs '{"reasoning_effort": "high"}' --n-gpu-layers -1  --n-cpu-moe 0
+
+  Mistral4-119B-Q8:
+    cmd: |
+      llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/Mistral-Small-4-119B-2603-UD-Q8_K_XL-00001-of-00004.gguf --ctx-size 65000 --cache-type-k q8_0 --cache-type-v q8_0  --flash-attn 'on'  --mlock  --batch-size 4096 --ubatch-size 1024 --parallel 1 --chat-template-kwargs '{"reasoning_effort": "high"}' --n-gpu-layers -1  --n-cpu-moe 0
+
+  Mistral4-119B-Q6:
+    cmd: |
+      llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/unsloth_Mistral-Small-4-119B-2603-GGUF_UD-Q6_K_XL_Mistral-Small-4-119B-2603-UD-Q6_K_XL-00001-of-00004.gguf --ctx-size 65000 --cache-type-k q8_0 --cache-type-v q8_0  --flash-attn 'on'  --mlock  --batch-size 4096 --ubatch-size 1024 --parallel 1 --chat-template-kwargs '{"reasoning_effort": "high"}' --n-gpu-layers -1  --n-cpu-moe 0
+
+  Mistral4-119B-Q4:
+    cmd: |
+      llama-server --port ${PORT} -m /shared/groups/gcrm/llamacpp_models/Mistral-Small-4-119B-2603-UD-Q4_K_XL-00001-of-00003.gguf --ctx-size 65000 --cache-type-k q4_0 --cache-type-v q4_0  --flash-attn 'on'  --mlock  --batch-size 4096 --ubatch-size 1024 --parallel 1 --chat-template-kwargs '{"reasoning_effort": "high"}' --n-gpu-layers -1  --n-cpu-moe 0
+
